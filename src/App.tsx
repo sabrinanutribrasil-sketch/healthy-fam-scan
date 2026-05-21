@@ -13,6 +13,8 @@ import Gamification from "./pages/Gamification.tsx";
 import SettingsPage from "./pages/Settings.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { AppShell } from "./components/AppShell.tsx";
+import { AuthProvider } from "./hooks/use-auth";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -22,22 +24,32 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/app" element={<AppShell />}>
-            <Route index element={<Dashboard />} />
-            <Route path="escanear" element={<Scan />} />
-            <Route path="receitas" element={<Recipes />} />
-            <Route path="familia" element={<Family />} />
-            <Route path="gamificacao" element={<Gamification />} />
-            <Route path="configuracoes" element={<SettingsPage />} />
-          </Route>
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
+            <Route
+              path="/app"
+              element={
+                <ProtectedRoute>
+                  <AppShell />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<Dashboard />} />
+              <Route path="escanear" element={<Scan />} />
+              <Route path="receitas" element={<Recipes />} />
+              <Route path="familia" element={<Family />} />
+              <Route path="gamificacao" element={<Gamification />} />
+              <Route path="configuracoes" element={<SettingsPage />} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
 );
 
 export default App;
+
