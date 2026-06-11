@@ -1,8 +1,10 @@
-import { useRef, useState } from "react";
-import { ScanLine, FileText, Tag, Camera, Sparkles, CheckCircle2, AlertTriangle, Loader2, RotateCcw } from "lucide-react";
+import { useRef, useState, useEffect } from "react";
+import { ScanLine, FileText, Tag, Camera, Sparkles, CheckCircle2, AlertTriangle, Loader2, RotateCcw, Shield } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
+import { usePrivacyConsent } from "@/hooks/use-privacy-consent";
 import { toast } from "sonner";
 
 type ReceiptItem = {
