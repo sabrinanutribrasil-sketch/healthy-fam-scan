@@ -178,7 +178,13 @@ const Scan = () => {
 
       {!done && (
         <Button
-          onClick={() => fileRef.current?.click()}
+          onClick={() => {
+            if (!cameraConsent) {
+              setShowCameraConsent(true);
+              return;
+            }
+            fileRef.current?.click();
+          }}
           disabled={analyzing}
           size="lg"
           className="w-full h-14 rounded-2xl gradient-primary shadow-glow gap-2"
@@ -186,6 +192,44 @@ const Scan = () => {
           {analyzing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Camera className="w-5 h-5" />}
           {analyzing ? "Processando..." : "Capturar imagem"}
         </Button>
+      )}
+
+      {showCameraConsent && (
+        <div className="bg-card rounded-2xl p-5 shadow-soft space-y-4">
+          <div className="flex items-center gap-2">
+            <Shield className="w-5 h-5 text-primary" />
+            <h3 className="font-semibold">Permissão de câmera</h3>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Para escanear notas fiscais e rótulos, precisamos acessar sua câmera. As imagens são processadas por IA para extrair dados nutricionais e <strong>não são armazenadas permanentemente</strong>. Veja nossa <a href="/privacidade" target="_blank" className="text-primary underline">Política de Privacidade</a>.
+          </p>
+          <div className="flex items-start gap-2">
+            <Checkbox id="cameraConsent" checked={cameraAccepted} onCheckedChange={(c) => setCameraAccepted(c === true)} className="mt-0.5" />
+            <label htmlFor="cameraConsent" className="text-xs text-muted-foreground leading-relaxed cursor-pointer">
+              Entendo que a imagem será enviada para análise por IA e autorizo o uso da câmera para este fim.
+            </label>
+          </div>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              className="flex-1 h-11 rounded-xl"
+              onClick={() => setShowCameraConsent(false)}
+            >
+              Agora não
+            </Button>
+            <Button
+              disabled={!cameraAccepted}
+              className="flex-1 h-11 rounded-xl gradient-primary shadow-glow"
+              onClick={() => {
+                saveCameraConsent(true);
+                setShowCameraConsent(false);
+                setTimeout(() => fileRef.current?.click(), 100);
+              }}
+            >
+              Permitir câmera
+            </Button>
+          </div>
+        </div>
       )}
 
       <AnimatePresence>
