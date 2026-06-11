@@ -27,9 +27,11 @@ const loginSchema = z.object({
 const Login = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { saveConsent } = usePrivacyConsent();
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ displayName: "", familyName: "", email: "", password: "" });
+  const [consents, setConsents] = useState({ privacy: false, terms: false, data: false });
 
   useEffect(() => {
     if (user) navigate("/app", { replace: true });
@@ -43,9 +45,15 @@ const Login = () => {
     setLoading(true);
     try {
       if (mode === "signup") {
+        if (!consents.privacy || !consents.terms || !consents.data) {
+          toast.error("Aceite os termos e a política de privacidade para continuar.");
+          setLoading(false);
+          return;
+        }
         const parsed = signupSchema.safeParse(form);
         if (!parsed.success) {
           toast.error(parsed.error.issues[0].message);
+          setLoading(false);
           return;
         }
         const { error } = await supabase.auth.signUp({
@@ -60,12 +68,14 @@ const Login = () => {
           },
         });
         if (error) throw error;
+        saveConsent({ privacyPolicy: true, termsOfUse: true, dataProcessing: true, cameraAccess: false });
         toast.success("Conta criada! Bem-vindo à NutriCasa 🌱");
         navigate("/app", { replace: true });
       } else {
         const parsed = loginSchema.safeParse({ email: form.email, password: form.password });
         if (!parsed.success) {
           toast.error(parsed.error.issues[0].message);
+          setLoading(false);
           return;
         }
         const { error } = await supabase.auth.signInWithPassword({
