@@ -57,6 +57,23 @@ const Settings = () => {
         ))}
       </div>
 
+      <div className="bg-card rounded-2xl shadow-soft overflow-hidden">
+        {legalItems.map((it, i) => (
+          <Link
+            key={it.l}
+            to={it.to}
+            target="_blank"
+            className={`flex items-center gap-3 p-4 ${i !== legalItems.length - 1 ? "border-b border-border" : ""}`}
+          >
+            <div className="w-10 h-10 rounded-xl gradient-fresh flex items-center justify-center">
+              <it.i className="w-4 h-4 text-primary" />
+            </div>
+            <span className="flex-1 font-medium">{it.l}</span>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          </Link>
+        ))}
+      </div>
+
       <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 p-4 text-destructive font-semibold">
         <LogOut className="w-4 h-4" /> Sair da conta
       </button>
