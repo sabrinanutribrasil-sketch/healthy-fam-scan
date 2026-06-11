@@ -61,7 +61,7 @@ const Index = () => {
         </div>
 
         {/* CTA */}
-        <div className="px-6 pb-10 space-y-3">
+        <div className="px-6 pb-6 space-y-3">
           <Button asChild size="lg" className="w-full h-14 rounded-2xl text-base gradient-primary shadow-glow hover:opacity-95">
             <Link to="/app">Começar agora</Link>
           </Button>
@@ -69,6 +69,18 @@ const Index = () => {
             <Link to="/login">Já tenho conta</Link>
           </Button>
         </div>
+
+        {/* Legal footer */}
+        <footer className="px-6 pb-8 pt-2 border-t border-border/50">
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+            <Link to="/privacidade" className="hover:text-foreground transition-colors">Privacidade</Link>
+            <Link to="/termos" className="hover:text-foreground transition-colors">Termos</Link>
+            <Link to="/uso-de-dados" className="hover:text-foreground transition-colors">Dados & Suporte</Link>
+          </div>
+          <p className="text-center text-[10px] text-muted-foreground/60 mt-2">
+            NutriCasa v1.0 · Seus dados são protegidos pela LGPD
+          </p>
+        </footer>
       </div>
     </div>
   );
