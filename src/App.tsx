@@ -48,6 +48,9 @@ const App = () => (
               <Route path="configuracoes" element={<SettingsPage />} />
               <Route path="perfil-nutricional" element={<NutritionProfile />} />
             </Route>
+            <Route path="/privacidade" element={<PrivacyPolicy />} />
+            <Route path="/termos" element={<TermsOfUse />} />
+            <Route path="/uso-de-dados" element={<DataUsage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
