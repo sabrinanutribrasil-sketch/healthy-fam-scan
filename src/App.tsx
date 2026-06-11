@@ -11,6 +11,7 @@ import Recipes from "./pages/Recipes.tsx";
 import Family from "./pages/Family.tsx";
 import Gamification from "./pages/Gamification.tsx";
 import SettingsPage from "./pages/Settings.tsx";
+import NutritionProfile from "./pages/NutritionProfile.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { AppShell } from "./components/AppShell.tsx";
 import { AuthProvider } from "./hooks/use-auth";
@@ -42,6 +43,7 @@ const App = () => (
               <Route path="familia" element={<Family />} />
               <Route path="gamificacao" element={<Gamification />} />
               <Route path="configuracoes" element={<SettingsPage />} />
+              <Route path="perfil-nutricional" element={<NutritionProfile />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
