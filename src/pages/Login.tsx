@@ -144,6 +144,29 @@ const Login = () => {
               <Input type="password" value={form.password} onChange={set("password")} placeholder="••••••••" className="h-12 mt-1.5 rounded-xl bg-card" />
             </div>
 
+            {mode === "signup" && (
+              <div className="space-y-2.5">
+                <div className="flex items-start gap-2">
+                  <Checkbox id="privacy" checked={consents.privacy} onCheckedChange={(c) => setConsents((s) => ({ ...s, privacy: c === true }))} className="mt-0.5" />
+                  <label htmlFor="privacy" className="text-xs text-muted-foreground leading-relaxed cursor-pointer">
+                    Li e aceito a <Link to="/privacidade" target="_blank" className="text-primary underline">Política de Privacidade</Link>
+                  </label>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Checkbox id="terms" checked={consents.terms} onCheckedChange={(c) => setConsents((s) => ({ ...s, terms: c === true }))} className="mt-0.5" />
+                  <label htmlFor="terms" className="text-xs text-muted-foreground leading-relaxed cursor-pointer">
+                    Li e aceito os <Link to="/termos" target="_blank" className="text-primary underline">Termos de Uso</Link>
+                  </label>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Checkbox id="data" checked={consents.data} onCheckedChange={(c) => setConsents((s) => ({ ...s, data: c === true }))} className="mt-0.5" />
+                  <label htmlFor="data" className="text-xs text-muted-foreground leading-relaxed cursor-pointer">
+                    Autorizo o processamento dos meus dados para análise nutricional e perfil da família, conforme a <Link to="/uso-de-dados" target="_blank" className="text-primary underline">explicação de uso dos dados</Link>
+                  </label>
+                </div>
+              </div>
+            )}
+
             <Button type="submit" size="lg" disabled={loading} className="w-full h-14 rounded-2xl gradient-primary shadow-glow mt-2">
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : mode === "login" ? "Entrar" : "Criar conta"}
             </Button>
