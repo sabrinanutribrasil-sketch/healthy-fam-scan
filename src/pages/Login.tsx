@@ -4,10 +4,12 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Leaf, ArrowLeft, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/hooks/use-auth";
+import { usePrivacyConsent } from "@/hooks/use-privacy-consent";
 import { toast } from "sonner";
 
 const signupSchema = z.object({
@@ -25,9 +27,11 @@ const loginSchema = z.object({
 const Login = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { saveConsent } = usePrivacyConsent();
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ displayName: "", familyName: "", email: "", password: "" });
+  const [consents, setConsents] = useState({ privacy: false, terms: false, data: false });
 
   useEffect(() => {
     if (user) navigate("/app", { replace: true });
@@ -41,9 +45,15 @@ const Login = () => {
     setLoading(true);
     try {
       if (mode === "signup") {
+        if (!consents.privacy || !consents.terms || !consents.data) {
+          toast.error("Aceite os termos e a política de privacidade para continuar.");
+          setLoading(false);
+          return;
+        }
         const parsed = signupSchema.safeParse(form);
         if (!parsed.success) {
           toast.error(parsed.error.issues[0].message);
+          setLoading(false);
           return;
         }
         const { error } = await supabase.auth.signUp({
@@ -58,12 +68,14 @@ const Login = () => {
           },
         });
         if (error) throw error;
+        saveConsent({ privacyPolicy: true, termsOfUse: true, dataProcessing: true, cameraAccess: false });
         toast.success("Conta criada! Bem-vindo à NutriCasa 🌱");
         navigate("/app", { replace: true });
       } else {
         const parsed = loginSchema.safeParse({ email: form.email, password: form.password });
         if (!parsed.success) {
           toast.error(parsed.error.issues[0].message);
+          setLoading(false);
           return;
         }
         const { error } = await supabase.auth.signInWithPassword({
@@ -131,6 +143,29 @@ const Login = () => {
               <Label>Senha</Label>
               <Input type="password" value={form.password} onChange={set("password")} placeholder="••••••••" className="h-12 mt-1.5 rounded-xl bg-card" />
             </div>
+
+            {mode === "signup" && (
+              <div className="space-y-2.5">
+                <div className="flex items-start gap-2">
+                  <Checkbox id="privacy" checked={consents.privacy} onCheckedChange={(c) => setConsents((s) => ({ ...s, privacy: c === true }))} className="mt-0.5" />
+                  <label htmlFor="privacy" className="text-xs text-muted-foreground leading-relaxed cursor-pointer">
+                    Li e aceito a <Link to="/privacidade" target="_blank" className="text-primary underline">Política de Privacidade</Link>
+                  </label>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Checkbox id="terms" checked={consents.terms} onCheckedChange={(c) => setConsents((s) => ({ ...s, terms: c === true }))} className="mt-0.5" />
+                  <label htmlFor="terms" className="text-xs text-muted-foreground leading-relaxed cursor-pointer">
+                    Li e aceito os <Link to="/termos" target="_blank" className="text-primary underline">Termos de Uso</Link>
+                  </label>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Checkbox id="data" checked={consents.data} onCheckedChange={(c) => setConsents((s) => ({ ...s, data: c === true }))} className="mt-0.5" />
+                  <label htmlFor="data" className="text-xs text-muted-foreground leading-relaxed cursor-pointer">
+                    Autorizo o processamento dos meus dados para análise nutricional e perfil da família, conforme a <Link to="/uso-de-dados" target="_blank" className="text-primary underline">explicação de uso dos dados</Link>
+                  </label>
+                </div>
+              </div>
+            )}
 
             <Button type="submit" size="lg" disabled={loading} className="w-full h-14 rounded-2xl gradient-primary shadow-glow mt-2">
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : mode === "login" ? "Entrar" : "Criar conta"}

@@ -12,6 +12,9 @@ import Family from "./pages/Family.tsx";
 import Gamification from "./pages/Gamification.tsx";
 import SettingsPage from "./pages/Settings.tsx";
 import NutritionProfile from "./pages/NutritionProfile.tsx";
+import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
+import TermsOfUse from "./pages/TermsOfUse.tsx";
+import DataUsage from "./pages/DataUsage.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { AppShell } from "./components/AppShell.tsx";
 import { AuthProvider } from "./hooks/use-auth";
@@ -45,6 +48,9 @@ const App = () => (
               <Route path="configuracoes" element={<SettingsPage />} />
               <Route path="perfil-nutricional" element={<NutritionProfile />} />
             </Route>
+            <Route path="/privacidade" element={<PrivacyPolicy />} />
+            <Route path="/termos" element={<TermsOfUse />} />
+            <Route path="/uso-de-dados" element={<DataUsage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Bell, Lock, CreditCard, HelpCircle, LogOut, Sprout, ChevronRight } from "lucide-react";
+import { ArrowLeft, Bell, Lock, CreditCard, HelpCircle, LogOut, Sprout, ChevronRight, Shield, FileText, Database } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 
 const items = [
@@ -8,6 +8,12 @@ const items = [
   { i: CreditCard, l: "Plano e pagamento", to: "#" },
   { i: Sprout, l: "Preferências sustentáveis", to: "#" },
   { i: HelpCircle, l: "Ajuda e suporte", to: "#" },
+];
+
+const legalItems = [
+  { i: Shield, l: "Política de Privacidade", to: "/privacidade" },
+  { i: FileText, l: "Termos de Uso", to: "/termos" },
+  { i: Database, l: "Uso dos Dados", to: "/uso-de-dados" },
 ];
 
 const Settings = () => {
@@ -41,6 +47,23 @@ const Settings = () => {
             key={it.l}
             to={it.to}
             className={`flex items-center gap-3 p-4 ${i !== items.length - 1 ? "border-b border-border" : ""}`}
+          >
+            <div className="w-10 h-10 rounded-xl gradient-fresh flex items-center justify-center">
+              <it.i className="w-4 h-4 text-primary" />
+            </div>
+            <span className="flex-1 font-medium">{it.l}</span>
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          </Link>
+        ))}
+      </div>
+
+      <div className="bg-card rounded-2xl shadow-soft overflow-hidden">
+        {legalItems.map((it, i) => (
+          <Link
+            key={it.l}
+            to={it.to}
+            target="_blank"
+            className={`flex items-center gap-3 p-4 ${i !== legalItems.length - 1 ? "border-b border-border" : ""}`}
           >
             <div className="w-10 h-10 rounded-xl gradient-fresh flex items-center justify-center">
               <it.i className="w-4 h-4 text-primary" />
