@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Bell, Lock, CreditCard, HelpCircle, LogOut, Sprout, ChevronRight } from "lucide-react";
+import { ArrowLeft, Bell, Lock, CreditCard, HelpCircle, LogOut, Sprout, ChevronRight, Shield, FileText, Database } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 
 const items = [
@@ -8,6 +8,12 @@ const items = [
   { i: CreditCard, l: "Plano e pagamento", to: "#" },
   { i: Sprout, l: "Preferências sustentáveis", to: "#" },
   { i: HelpCircle, l: "Ajuda e suporte", to: "#" },
+];
+
+const legalItems = [
+  { i: Shield, l: "Política de Privacidade", to: "/privacidade" },
+  { i: FileText, l: "Termos de Uso", to: "/termos" },
+  { i: Database, l: "Uso dos Dados", to: "/uso-de-dados" },
 ];
 
 const Settings = () => {
