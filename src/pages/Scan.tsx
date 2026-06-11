@@ -56,7 +56,14 @@ const Scan = () => {
   const [preview, setPreview] = useState<string | null>(null);
   const [receipt, setReceipt] = useState<ReceiptResult | null>(null);
   const [label, setLabel] = useState<LabelResult | null>(null);
+  const [showCameraConsent, setShowCameraConsent] = useState(false);
+  const [cameraAccepted, setCameraAccepted] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const { cameraConsent, saveCameraConsent } = usePrivacyConsent();
+
+  useEffect(() => {
+    if (!cameraConsent) setShowCameraConsent(true);
+  }, [cameraConsent]);
 
   const reset = () => {
     setReceipt(null);
