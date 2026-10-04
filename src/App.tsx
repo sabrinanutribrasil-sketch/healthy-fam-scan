@@ -13,6 +13,7 @@ import Gamification from "./pages/Gamification.tsx";
 import SettingsPage from "./pages/Settings.tsx";
 import NutritionProfile from "./pages/NutritionProfile.tsx";
 import Premium from "./pages/Premium.tsx";
+import CheckoutReturn from "./pages/CheckoutReturn.tsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
 import TermsOfUse from "./pages/TermsOfUse.tsx";
 import DataUsage from "./pages/DataUsage.tsx";
@@ -49,6 +50,7 @@ const App = () => (
               <Route path="configuracoes" element={<SettingsPage />} />
               <Route path="perfil-nutricional" element={<NutritionProfile />} />
               <Route path="premium" element={<Premium />} />
+              <Route path="premium/confirmacao" element={<CheckoutReturn />} />
             </Route>
             <Route path="/privacidade" element={<PrivacyPolicy />} />
             <Route path="/termos" element={<TermsOfUse />} />

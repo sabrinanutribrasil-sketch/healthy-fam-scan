@@ -3,7 +3,10 @@ import { Check, X, Crown, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
+import { ArrowLeft, ShieldCheck } from "lucide-react";
+import { StripeEmbeddedCheckout } from "@/components/StripeEmbeddedCheckout";
+import { isPaymentTestMode } from "@/lib/stripe";
+import { useSubscription } from "@/hooks/use-subscription";
 
 type Plan = "monthly" | "yearly";
 
@@ -24,14 +27,29 @@ const features: { label: string; free: boolean | string; premium: boolean | stri
 
 export default function Premium() {
   const [plan, setPlan] = useState<Plan>("yearly");
-
-  const handleSubscribe = () => {
-    toast.info("Checkout em breve! Pagamentos serão ativados no próximo passo.");
-  };
+  const [showCheckout, setShowCheckout] = useState(false);
+  const { isPremium, subscription } = useSubscription();
 
   const price = plan === "monthly" ? "R$ 9,90" : "R$ 89,00";
   const period = plan === "monthly" ? "/mês" : "/ano";
   const savings = plan === "yearly" ? "Economize R$ 29,80" : null;
+  const priceId = plan === "monthly" ? "nutricasa_premium_monthly" : "nutricasa_premium_yearly";
+
+  if (showCheckout) {
+    return (
+      <div className="container mx-auto max-w-2xl px-4 py-6 space-y-4">
+        <Button variant="ghost" onClick={() => setShowCheckout(false)}>
+          <ArrowLeft className="mr-2 h-4 w-4" /> Voltar aos planos
+        </Button>
+        {isPaymentTestMode() && (
+          <div className="rounded-lg border border-accent bg-accent/10 px-4 py-3 text-sm text-accent-foreground">
+            Ambiente de teste: nenhum valor real será cobrado.
+          </div>
+        )}
+        <StripeEmbeddedCheckout priceId={priceId} />
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto max-w-5xl px-4 py-8 space-y-8">
@@ -50,23 +68,23 @@ export default function Premium() {
 
       <div className="flex justify-center">
         <div className="inline-flex rounded-lg border bg-muted/40 p-1">
-          <button
+          <Button
+            type="button"
+            variant={plan === "monthly" ? "secondary" : "ghost"}
             onClick={() => setPlan("monthly")}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition ${
-              plan === "monthly" ? "bg-background shadow-sm" : "text-muted-foreground"
-            }`}
+            className="shadow-none"
           >
             Mensal
-          </button>
-          <button
+          </Button>
+          <Button
+            type="button"
+            variant={plan === "yearly" ? "secondary" : "ghost"}
             onClick={() => setPlan("yearly")}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition flex items-center gap-2 ${
-              plan === "yearly" ? "bg-background shadow-sm" : "text-muted-foreground"
-            }`}
+            className="gap-2 shadow-none"
           >
             Anual
             <Badge variant="secondary" className="text-xs">-25%</Badge>
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -78,7 +96,7 @@ export default function Premium() {
           </div>
           <div className="text-3xl font-bold">R$ 0<span className="text-base font-normal text-muted-foreground">/mês</span></div>
           <Button variant="outline" className="w-full" disabled>
-            Seu plano atual
+            {isPremium ? "Plano anterior" : "Seu plano atual"}
           </Button>
           <ul className="space-y-2 pt-4">
             {features.map((f) => (
@@ -112,9 +130,14 @@ export default function Premium() {
             </div>
             {savings && <p className="text-xs text-primary mt-1">{savings}</p>}
           </div>
-          <Button className="w-full" onClick={handleSubscribe}>
-            Começar teste grátis de 7 dias
+          <Button className="w-full" onClick={() => setShowCheckout(true)} disabled={isPremium}>
+            {isPremium ? "Premium ativo" : "Começar teste grátis de 7 dias"}
           </Button>
+          {isPremium && subscription?.current_period_end && (
+            <p className="text-center text-xs text-muted-foreground">
+              Acesso garantido até {new Date(subscription.current_period_end).toLocaleDateString("pt-BR")}.
+            </p>
+          )}
           <ul className="space-y-2 pt-4">
             {features.map((f) => (
               <li key={f.label} className="flex items-start gap-2 text-sm">
@@ -130,7 +153,8 @@ export default function Premium() {
       </div>
 
       <p className="text-center text-xs text-muted-foreground">
-        Cancele a qualquer momento. Pagamento seguro processado por nosso parceiro.
+        <ShieldCheck className="mr-1 inline h-3.5 w-3.5" />
+        Cancele a qualquer momento. Pagamento seguro e impostos calculados no checkout.
       </p>
     </div>
   );
