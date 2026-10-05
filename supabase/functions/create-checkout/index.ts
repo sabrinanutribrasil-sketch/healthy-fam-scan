@@ -1,14 +1,13 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { z } from "npm:zod@3.25.76";
 import { type StripeEnv, createStripeClient } from "../_shared/stripe.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
-function isEnvironment(value: unknown): value is StripeEnv {
-  return value === "sandbox" || value === "live";
-}
+const BodySchema = z.object({
+  priceId: z.enum(["nutricasa_premium_monthly", "nutricasa_premium_yearly"]),
+  returnUrl: z.string().url(),
+  environment: z.enum(["sandbox", "live"]),
+});
 
 async function resolveOrCreateCustomer(
   stripe: ReturnType<typeof createStripeClient>,
@@ -47,21 +46,25 @@ Deno.serve(async (req) => {
 
   try {
     const token = req.headers.get("Authorization")?.replace("Bearer ", "");
-    const backend = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-    );
+    const backendUrl = Deno.env.get("SUPABASE_URL");
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    if (!backendUrl || !anonKey) throw new Error("Backend is not configured");
+    const backend = createClient(backendUrl, anonKey);
     const { data: { user }, error } = await backend.auth.getUser(token);
     if (error || !user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-    const { priceId, returnUrl, environment } = await req.json();
-    if (!isEnvironment(environment)) throw new Error("Invalid environment");
-    if (!/^[a-zA-Z0-9_-]+$/.test(priceId)) throw new Error("Invalid priceId");
-    if (!["nutricasa_premium_monthly", "nutricasa_premium_yearly"].includes(priceId)) throw new Error("Unknown price");
+    const parsedBody = BodySchema.safeParse(await req.json());
+    if (!parsedBody.success) {
+      return new Response(JSON.stringify({ error: "Dados de pagamento inválidos." }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const { priceId, returnUrl, environment } = parsedBody.data;
     const parsedReturnUrl = new URL(returnUrl);
     if (parsedReturnUrl.origin !== req.headers.get("origin")) throw new Error("Invalid return URL");
 
-    const stripe = createStripeClient(environment);
+    const stripe = createStripeClient(environment as StripeEnv);
     const prices = await stripe.prices.list({ lookup_keys: [priceId] });
     if (!prices.data.length) throw new Error("Price not found");
     const customerId = await resolveOrCreateCustomer(stripe, { email: user.email, userId: user.id });

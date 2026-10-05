@@ -21,3 +21,7 @@ export function getStripe(): Promise<Stripe | null> {
 export function isPaymentTestMode() {
   return clientToken?.startsWith("pk_test_") ?? false;
 }
+
+export function isPaymentsConfigured() {
+  return clientToken?.startsWith("pk_test_") || clientToken?.startsWith("pk_live_");
+}

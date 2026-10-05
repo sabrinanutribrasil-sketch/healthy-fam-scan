@@ -21,7 +21,14 @@ export function useSubscription() {
       setLoading(false);
       return;
     }
-    const environment = getStripeEnvironment();
+    let environment: "sandbox" | "live";
+    try {
+      environment = getStripeEnvironment();
+    } catch {
+      setSubscription(null);
+      setLoading(false);
+      return;
+    }
     const load = async () => {
       const { data } = await supabase
         .from("subscriptions")

@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { StripeEmbeddedCheckout } from "@/components/StripeEmbeddedCheckout";
-import { isPaymentTestMode } from "@/lib/stripe";
+import { isPaymentsConfigured, isPaymentTestMode } from "@/lib/stripe";
 import { useSubscription } from "@/hooks/use-subscription";
 
 type Plan = "monthly" | "yearly";
@@ -34,6 +34,7 @@ export default function Premium() {
   const period = plan === "monthly" ? "/mês" : "/ano";
   const savings = plan === "yearly" ? "Economize R$ 29,80" : null;
   const priceId = plan === "monthly" ? "nutricasa_premium_monthly" : "nutricasa_premium_yearly";
+  const paymentsConfigured = isPaymentsConfigured();
 
   if (showCheckout) {
     return (
@@ -44,6 +45,11 @@ export default function Premium() {
         {isPaymentTestMode() && (
           <div className="rounded-lg border border-accent bg-accent/10 px-4 py-3 text-sm text-accent-foreground">
             Ambiente de teste: nenhum valor real será cobrado.
+          </div>
+        )}
+        {!paymentsConfigured && (
+          <div className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            Conclua a ativação de pagamentos ao vivo antes de receber assinaturas.
           </div>
         )}
         <StripeEmbeddedCheckout priceId={priceId} />
@@ -130,8 +136,8 @@ export default function Premium() {
             </div>
             {savings && <p className="text-xs text-primary mt-1">{savings}</p>}
           </div>
-          <Button className="w-full" onClick={() => setShowCheckout(true)} disabled={isPremium}>
-            {isPremium ? "Premium ativo" : "Começar teste grátis de 7 dias"}
+          <Button className="w-full" onClick={() => setShowCheckout(true)} disabled={isPremium || !paymentsConfigured}>
+            {isPremium ? "Premium ativo" : paymentsConfigured ? "Começar teste grátis de 7 dias" : "Pagamento indisponível"}
           </Button>
           {isPremium && subscription?.current_period_end && (
             <p className="text-center text-xs text-muted-foreground">

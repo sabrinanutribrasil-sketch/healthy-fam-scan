@@ -1,10 +1,10 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { type StripeEnv, verifyWebhook } from "../_shared/stripe.ts";
 
-const backend = createClient(
-  Deno.env.get("SUPABASE_URL")!,
-  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
-);
+const backendUrl = Deno.env.get("SUPABASE_URL");
+const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+if (!backendUrl || !serviceRoleKey) throw new Error("Backend is not configured");
+const backend = createClient(backendUrl, serviceRoleKey);
 
 function subscriptionRow(subscription: any, environment: StripeEnv) {
   const item = subscription.items?.data?.[0];
@@ -37,14 +37,14 @@ Deno.serve(async (req) => {
 
   try {
     const event = await verifyWebhook(req, rawEnvironment);
-    if (["customer.subscription.created", "customer.subscription.updated"].includes(event.type)) {
+    if (["customer.subscription.created", "customer.subscription.updated", "subscription.created", "subscription.updated"].includes(event.type)) {
       const row = subscriptionRow(event.data.object, rawEnvironment);
       if (!row.user_id || !row.price_id || !row.product_id || !row.stripe_customer_id) {
         throw new Error("Subscription is missing required metadata");
       }
       const { error } = await backend.from("subscriptions").upsert(row, { onConflict: "stripe_subscription_id" });
       if (error) throw error;
-    } else if (event.type === "customer.subscription.deleted") {
+    } else if (["customer.subscription.deleted", "customer.subscription.canceled", "subscription.deleted", "subscription.canceled"].includes(event.type)) {
       const { error } = await backend
         .from("subscriptions")
         .update({ status: "canceled", updated_at: new Date().toISOString() })
