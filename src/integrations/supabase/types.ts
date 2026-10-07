@@ -41,6 +41,44 @@ export type Database = {
         }
         Relationships: []
       }
+      family_meal_planning: {
+        Row: {
+          checked_items: string[]
+          family_id: string
+          generated_at: string | null
+          pantry: Json
+          plan: Json | null
+          preferences: Json
+          updated_at: string
+        }
+        Insert: {
+          checked_items?: string[]
+          family_id: string
+          generated_at?: string | null
+          pantry?: Json
+          plan?: Json | null
+          preferences?: Json
+          updated_at?: string
+        }
+        Update: {
+          checked_items?: string[]
+          family_id?: string
+          generated_at?: string | null
+          pantry?: Json
+          plan?: Json | null
+          preferences?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "family_meal_planning_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: true
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_emoji: string
