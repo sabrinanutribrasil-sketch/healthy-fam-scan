@@ -1,0 +1,2 @@
+export { defaultPreferences, mealSlots, diets, validateInput, validatePlan } from "../../supabase/functions/_shared/meal-plan";
+export type { PantryItem, Preferences, Meal, MealPlan } from "../../supabase/functions/_shared/meal-plan";
