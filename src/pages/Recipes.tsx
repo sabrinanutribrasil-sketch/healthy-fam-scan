@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Search, Heart, Clock, Sparkles } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { recipes } from "@/lib/mock-data";
@@ -54,8 +55,11 @@ const Recipes = () => {
         {recipes.map((r, i) => {
           const fav = favs.includes(r.id);
           return (
-            <motion.div
+            <Link
               key={r.id}
+              to={`/app/receitas/${r.id}`}
+            >
+            <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
@@ -64,7 +68,7 @@ const Recipes = () => {
               <div className="relative">
                 <img src={r.img} alt={r.title} loading="lazy" className="w-full aspect-square object-cover" />
                 <button
-                  onClick={() => setFavs((p) => (fav ? p.filter((x) => x !== r.id) : [...p, r.id]))}
+                  onClick={(e) => { e.preventDefault(); setFavs((p) => (fav ? p.filter((x) => x !== r.id) : [...p, r.id])); }}
                   className="absolute top-2 right-2 w-9 h-9 rounded-full bg-card/90 backdrop-blur flex items-center justify-center"
                 >
                   <Heart className={`w-4 h-4 ${fav ? "fill-destructive text-destructive" : "text-foreground"}`} />
@@ -81,6 +85,7 @@ const Recipes = () => {
                 </div>
               </div>
             </motion.div>
+            </Link>
           );
         })}
       </div>

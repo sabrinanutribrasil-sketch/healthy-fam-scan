@@ -8,6 +8,7 @@ import Login from "./pages/Login.tsx";
 import Dashboard from "./pages/Dashboard.tsx";
 import Scan from "./pages/Scan.tsx";
 import Recipes from "./pages/Recipes.tsx";
+import RecipeDetail from "./pages/RecipeDetail.tsx";
 import Family from "./pages/Family.tsx";
 import Gamification from "./pages/Gamification.tsx";
 import SettingsPage from "./pages/Settings.tsx";
@@ -45,6 +46,7 @@ const App = () => (
               <Route index element={<Dashboard />} />
               <Route path="escanear" element={<Scan />} />
               <Route path="receitas" element={<Recipes />} />
+              <Route path="receitas/:id" element={<RecipeDetail />} />
               <Route path="familia" element={<Family />} />
               <Route path="gamificacao" element={<Gamification />} />
               <Route path="configuracoes" element={<SettingsPage />} />
