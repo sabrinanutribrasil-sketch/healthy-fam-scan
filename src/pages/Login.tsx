@@ -7,7 +7,6 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Leaf, ArrowLeft, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/hooks/use-auth";
 import { usePrivacyConsent } from "@/hooks/use-privacy-consent";
 import { toast } from "sonner";
@@ -92,19 +91,6 @@ const Login = () => {
     }
   };
 
-  const oauth = async (provider: "google" | "apple") => {
-    setLoading(true);
-    const result = await lovable.auth.signInWithOAuth(provider, {
-      redirect_uri: `${window.location.origin}/app`,
-    });
-    if (result.error) {
-      toast.error(result.error.message ?? "Falha no login social");
-      setLoading(false);
-      return;
-    }
-    if (result.redirected) return;
-    navigate("/app", { replace: true });
-  };
 
   return (
     <div className="min-h-screen bg-background flex justify-center">
@@ -171,21 +157,6 @@ const Login = () => {
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : mode === "login" ? "Entrar" : "Criar conta"}
             </Button>
           </form>
-
-          <div className="flex items-center gap-3 my-6">
-            <div className="h-px bg-border flex-1" />
-            <span className="text-xs text-muted-foreground uppercase tracking-wider">ou</span>
-            <div className="h-px bg-border flex-1" />
-          </div>
-
-          <div className="space-y-3">
-            <Button type="button" variant="outline" disabled={loading} onClick={() => oauth("google")} className="w-full h-12 rounded-2xl bg-card">
-              Continuar com Google
-            </Button>
-            <Button type="button" variant="outline" disabled={loading} onClick={() => oauth("apple")} className="w-full h-12 rounded-2xl bg-card">
-              Continuar com Apple
-            </Button>
-          </div>
 
           <button
             type="button"

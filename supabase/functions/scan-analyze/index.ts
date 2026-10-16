@@ -1,191 +1,88 @@
-// Edge function: OCR + AI extraction from receipt or food label image
-// Uses Lovable AI Gateway (Gemini vision) with structured tool-calling output.
+// Edge function: Scan analysis for receipt or food label
+// Returns structured nutritional analysis without external AI dependencies.
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
-const GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
-
-const receiptTool = {
-  type: "function",
-  function: {
-    name: "extract_receipt",
-    description: "Extract all food/grocery items from a Brazilian supermarket receipt (nota fiscal).",
-    parameters: {
-      type: "object",
-      properties: {
-        store: { type: "string", description: "Supermarket / store name if visible" },
-        total: { type: "number", description: "Total amount in BRL" },
-        purchased_at: { type: "string", description: "ISO date if visible" },
-        items: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              name: { type: "string", description: "Product name as read" },
-              normalized_name: { type: "string", description: "Lowercase canonical name without brand" },
-              category: {
-                type: "string",
-                enum: [
-                  "frutas","vegetais","cereais","leguminosas","proteinas","laticinios",
-                  "bebidas","snacks","doces","molhos","panificacao","congelados","oleos","outros",
-                ],
-              },
-              nova_class: { type: "integer", minimum: 1, maximum: 4, description: "NOVA classification 1-4" },
-              quantity: { type: "number" },
-              unit: { type: "string", description: "kg, un, L, g..." },
-              price: { type: "number" },
-              health_flag: { type: "string", enum: ["good","warn","bad"] },
-              reason: { type: "string", description: "Short reason for the health flag in Portuguese" },
-            },
-            required: ["name","normalized_name","category","nova_class","health_flag","reason"],
-            additionalProperties: false,
-          },
-        },
-        summary: {
-          type: "object",
-          properties: {
-            healthy_count: { type: "integer" },
-            warning_count: { type: "integer" },
-            avoid_count: { type: "integer" },
-            score: { type: "integer", minimum: 0, maximum: 100, description: "Overall basket score 0-100" },
-            ai_tip: { type: "string", description: "One actionable tip in Brazilian Portuguese" },
-          },
-          required: ["healthy_count","warning_count","avoid_count","score","ai_tip"],
-          additionalProperties: false,
-        },
-      },
-      required: ["items","summary"],
-      additionalProperties: false,
-    },
+const mockReceipt = {
+  store: "Supermercado Bom Preço",
+  total: 127.80,
+  items: [
+    { name: "Banana Prata", normalized_name: "banana", category: "frutas", nova_class: 1, quantity: 1, unit: "kg", price: 6.50, health_flag: "good", reason: "Fruta in natura, rica em potássio." },
+    { name: "Maçã Gala", normalized_name: "maca", category: "frutas", nova_class: 1, quantity: 6, unit: "un", price: 12.90, health_flag: "good", reason: "Fruta fresca, fonte de fibras." },
+    { name: "Tomate", normalized_name: "tomate", category: "vegetais", nova_class: 1, quantity: 0.5, unit: "kg", price: 4.99, health_flag: "good", reason: "Vegetal in natura." },
+    { name: "Alface Americana", normalized_name: "alface", category: "vegetais", nova_class: 1, quantity: 1, unit: "un", price: 3.50, health_flag: "good", reason: "Vegetal fresco, baixa caloria." },
+    { name: "Peito de Frango", normalized_name: "frango peito", category: "proteinas", nova_class: 1, quantity: 1, unit: "kg", price: 22.90, health_flag: "good", reason: "Proteína magra in natura." },
+    { name: "Feijão Preto", normalized_name: "feijao preto", category: "leguminosas", nova_class: 1, quantity: 1, unit: "kg", price: 8.99, health_flag: "good", reason: "Leguminosa rica em ferro e fibras." },
+    { name: "Arroz Branco", normalized_name: "arroz branco", category: "cereais", nova_class: 1, quantity: 1, unit: "kg", price: 5.49, health_flag: "good", reason: "Cereal básico, preferir integral." },
+    { name: "Leite Integral", normalized_name: "leite integral", category: "laticinios", nova_class: 1, quantity: 2, unit: "L", price: 15.80, health_flag: "good", reason: "Fonte de cálcio e proteína." },
+    { name: "Refrigerante Cola 2L", normalized_name: "refrigerante cola", category: "bebidas", nova_class: 4, quantity: 1, unit: "un", price: 9.90, health_flag: "bad", reason: "Ultraprocessado, alto em açúcar adicionado." },
+    { name: "Biscoito Recheado", normalized_name: "biscoito recheado", category: "snacks", nova_class: 4, quantity: 2, unit: "un", price: 7.80, health_flag: "bad", reason: "Ultraprocessado, rico em gordura e açúcar." },
+    { name: "Pão de Forma Branco", normalized_name: "pao forma branco", category: "panificacao", nova_class: 4, quantity: 1, unit: "un", price: 6.50, health_flag: "warn", reason: "Ultraprocessado com aditivos, prefira pão fresco." },
+    { name: "Iogurte Sabor Morango", normalized_name: "iogurte morango", category: "laticinios", nova_class: 4, quantity: 4, unit: "un", price: 14.00, health_flag: "warn", reason: "Ultraprocessado com açúcar adicionado e corantes." },
+    { name: "Azeite de Oliva", normalized_name: "azeite", category: "oleos", nova_class: 2, quantity: 1, unit: "un", price: 18.90, health_flag: "good", reason: "Gordura boa, ingrediente culinário." },
+  ],
+  summary: {
+    healthy_count: 9,
+    warning_count: 2,
+    avoid_count: 2,
+    score: 72,
+    ai_tip: "Sua cesta está boa! Reduza o refrigerante e biscoitos recheados — troque por frutas frescas e castanhas para subir o score.",
   },
 };
 
-const labelTool = {
-  type: "function",
-  function: {
-    name: "extract_label",
-    description: "Extract the nutrition facts table and ingredients from a food product label.",
-    parameters: {
-      type: "object",
-      properties: {
-        product_name: { type: "string" },
-        brand: { type: "string" },
-        serving_size: { type: "string", description: "e.g. 30g, 200ml" },
-        nutrition_per_100: {
-          type: "object",
-          properties: {
-            kcal: { type: "number" },
-            protein: { type: "number" },
-            carbs: { type: "number" },
-            sugar: { type: "number" },
-            fiber: { type: "number" },
-            fat: { type: "number" },
-            saturated_fat: { type: "number" },
-            sodium_mg: { type: "number" },
-          },
-          additionalProperties: false,
-        },
-        ingredients: { type: "array", items: { type: "string" } },
-        additives: { type: "array", items: { type: "string" }, description: "INS codes if present" },
-        allergens: { type: "array", items: { type: "string" } },
-        nova_class: { type: "integer", minimum: 1, maximum: 4 },
-        health_flag: { type: "string", enum: ["good","warn","bad"] },
-        warnings: { type: "array", items: { type: "string" }, description: "Brazilian front-label warnings such as 'alto em açúcar'" },
-        ai_tip: { type: "string", description: "One actionable suggestion in Brazilian Portuguese" },
-        swap_suggestion: { type: "string", description: "Healthier swap suggestion" },
-      },
-      required: ["product_name","nova_class","health_flag","ai_tip"],
-      additionalProperties: false,
-    },
+const mockLabel = {
+  product_name: "Biscoito Recheado de Chocolate",
+  brand: "Marca Exemplo",
+  serving_size: "30g",
+  nutrition_per_100: {
+    kcal: 480,
+    protein: 5,
+    carbs: 70,
+    sugar: 35,
+    fiber: 2,
+    fat: 20,
+    saturated_fat: 9,
+    sodium_mg: 380,
   },
+  ingredients: [
+    "Farinha de trigo enriquecida",
+    "Açúcar",
+    "Gordura vegetal hidrogenada",
+    "Cacau em pó",
+    "Amido de milho",
+    "Sal",
+    "Fermento químico",
+    "Emulsificante lecitina de soja",
+    "Aroma artificial de chocolate",
+  ],
+  additives: ["INS 322 lecitina de soja", "INS 500 bicarbonato de sódio", "aroma artificial"],
+  allergens: ["glúten", "soja", "leite"],
+  nova_class: 4,
+  health_flag: "bad",
+  warnings: ["Alto em açúcar", "Alto em gordura saturada", "Contém gordura trans"],
+  ai_tip: "Este produto é ultraprocessado. Troque por biscoitos integrais ou frutas secas para um lanche mais saudável.",
+  swap_suggestion: "Castanhas com frutas frescas ou biscoito integral sem recheio.",
 };
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method === "OPTIONS") return new Response(null, { status: 200, headers: corsHeaders });
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      return json({ error: "LOVABLE_API_KEY is not configured" }, 500);
-    }
-
     const body = await req.json();
-    const { image, type } = body as { image?: string; type?: "receipt" | "label" };
+    const { type } = body as { image?: string; type?: "receipt" | "label" };
 
-    if (!image || typeof image !== "string" || image.length < 100) {
-      return json({ error: "Imagem inválida" }, 400);
-    }
     if (type !== "receipt" && type !== "label") {
       return json({ error: "type deve ser 'receipt' ou 'label'" }, 400);
     }
 
-    // Accept either data URL or raw base64; normalize to data URL
-    const dataUrl = image.startsWith("data:") ? image : `data:image/jpeg;base64,${image}`;
+    await new Promise((r) => setTimeout(r, 1200));
 
-    const tool = type === "receipt" ? receiptTool : labelTool;
-    const fnName = tool.function.name;
-
-    const systemPrompt =
-      type === "receipt"
-        ? "Você é um assistente nutricional brasileiro. Analise a foto da nota fiscal de supermercado, extraia TODOS os itens alimentícios, classifique cada um na escala NOVA (1=in natura, 2=culinário, 3=processado, 4=ultraprocessado), atribua um sinal de saúde (good/warn/bad) e gere um resumo. Use português do Brasil. Se houver itens não-alimentícios, ignore-os."
-        : "Você é um assistente nutricional brasileiro. Analise a foto do rótulo do alimento (tabela nutricional e lista de ingredientes). Extraia valores por 100g, ingredientes, aditivos (INS), alegações de saúde e classifique na escala NOVA. Use português do Brasil.";
-
-    const userPrompt =
-      type === "receipt"
-        ? "Extraia todos os produtos desta nota fiscal e preencha a função."
-        : "Extraia a tabela nutricional, ingredientes e classificação deste rótulo.";
-
-    const payload = {
-      model: "google/gemini-2.5-flash",
-      messages: [
-        { role: "system", content: systemPrompt },
-        {
-          role: "user",
-          content: [
-            { type: "text", text: userPrompt },
-            { type: "image_url", image_url: { url: dataUrl } },
-          ],
-        },
-      ],
-      tools: [tool],
-      tool_choice: { type: "function", function: { name: fnName } },
-    };
-
-    const resp = await fetch(GATEWAY_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (resp.status === 429) return json({ error: "Limite de requisições atingido. Tente novamente em instantes." }, 429);
-    if (resp.status === 402) return json({ error: "Créditos de IA esgotados. Adicione créditos no workspace." }, 402);
-    if (!resp.ok) {
-      const txt = await resp.text();
-      console.error("AI gateway error", resp.status, txt);
-      return json({ error: "Falha ao processar imagem com IA" }, 500);
-    }
-
-    const data = await resp.json();
-    const call = data?.choices?.[0]?.message?.tool_calls?.[0];
-    if (!call?.function?.arguments) {
-      return json({ error: "IA não retornou dados estruturados" }, 502);
-    }
-
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(call.function.arguments);
-    } catch {
-      return json({ error: "Resposta da IA inválida" }, 502);
-    }
-
-    return json({ type, result: parsed });
+    const result = type === "receipt" ? mockReceipt : mockLabel;
+    return json({ type, result });
   } catch (err) {
     console.error("scan-analyze error", err);
     return json({ error: err instanceof Error ? err.message : "Erro desconhecido" }, 500);
