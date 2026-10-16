@@ -10,6 +10,7 @@ import Scan from "./pages/Scan.tsx";
 import Recipes from "./pages/Recipes.tsx";
 import RecipeDetail from "./pages/RecipeDetail.tsx";
 import Family from "./pages/Family.tsx";
+import MemberProfile from "./pages/MemberProfile.tsx";
 import Gamification from "./pages/Gamification.tsx";
 import SettingsPage from "./pages/Settings.tsx";
 import NutritionProfile from "./pages/NutritionProfile.tsx";
@@ -49,6 +50,7 @@ const App = () => (
               <Route path="receitas" element={<Recipes />} />
               <Route path="receitas/:id" element={<RecipeDetail />} />
               <Route path="familia" element={<Family />} />
+              <Route path="familia/:id" element={<MemberProfile />} />
               <Route path="gamificacao" element={<Gamification />} />
               <Route path="configuracoes" element={<SettingsPage />} />
               <Route path="perfil-nutricional" element={<NutritionProfile />} />
