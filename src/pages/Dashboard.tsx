@@ -301,6 +301,22 @@ const Dashboard = () => {
         </div>
       </div>
 
+      <Link to="/app/sustentabilidade" className="block">
+        <div className="rounded-3xl p-5 shadow-soft relative overflow-hidden" style={{ background: "linear-gradient(135deg, hsl(150 45% 45%), hsl(160 50% 38%))" }}>
+          <div className="absolute -right-6 -bottom-6 w-32 h-32 rounded-full bg-white/10" />
+          <div className="relative text-white flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur flex items-center justify-center shrink-0">
+              <Leaf className="w-6 h-6" />
+            </div>
+            <div className="flex-1">
+              <p className="font-display text-lg">Sustentabilidade</p>
+              <p className="text-sm opacity-90">Veja o impacto ambiental das suas compras</p>
+            </div>
+            <ChevronRight className="w-5 h-5 opacity-80" />
+          </div>
+        </div>
+      </Link>
+
       <div>
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-display text-xl">Receitas para você</h2>

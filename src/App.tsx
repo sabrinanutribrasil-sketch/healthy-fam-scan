@@ -20,6 +20,7 @@ import CheckoutReturn from "./pages/CheckoutReturn.tsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
 import TermsOfUse from "./pages/TermsOfUse.tsx";
 import DataUsage from "./pages/DataUsage.tsx";
+import Sustainability from "./pages/Sustainability.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { AppShell } from "./components/AppShell.tsx";
 import { AuthProvider } from "./hooks/use-auth";
@@ -57,6 +58,7 @@ const App = () => (
               <Route path="historico" element={<ScanHistory />} />
               <Route path="premium" element={<Premium />} />
               <Route path="premium/confirmacao" element={<CheckoutReturn />} />
+              <Route path="sustentabilidade" element={<Sustainability />} />
             </Route>
             <Route path="/privacidade" element={<PrivacyPolicy />} />
             <Route path="/termos" element={<TermsOfUse />} />
