@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { ArrowLeft, CalendarDays, ShoppingBasket, Plus, Trash2, Sparkles, Loader2, Save, Clock, Download, AlertTriangle } from "lucide-react";
+import { ArrowLeft, CalendarDays, ShoppingBasket, Plus, Trash2, Sparkles, Loader2, Save, Clock, Download, AlertTriangle, Users, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -44,6 +44,7 @@ export default function MealPlanner() {
   const [dirty, setDirty] = useState(false);
   const [checking, setChecking] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  const [memberInfo, setMemberInfo] = useState<{ restrictions: string[]; allergies: string[]; goals: string[]; count: number }>({ restrictions: [], allergies: [], goals: [], count: 0 });
   useEffect(() => {
     let active = true;
     setLoading(true); setLoadFailed(false);
@@ -59,6 +60,14 @@ export default function MealPlanner() {
         items = merged.slice(0, 80); setDirty(true);
       }
       setPantry(items); setPrefs(savedPrefs); setChecked(state?.checked_items ?? []); setGenerated(state?.generated_at ?? null);
+      if (data.members) {
+        setMemberInfo({ restrictions: data.members.restrictions ?? [], allergies: data.members.allergies ?? [], goals: data.members.goals ?? [], count: data.members.list?.length ?? 0 });
+        if ((!savedPrefs.allergies || savedPrefs.allergies === "") && (data.members.allergies?.length || data.members.restrictions?.length)) {
+          const combined = [...new Set([...(data.members.allergies ?? []), ...(data.members.restrictions ?? [])])];
+          setPrefs(p => ({ ...p, allergies: combined.join(", ") }));
+          setDirty(true);
+        }
+      }
       if (state?.plan) { try { setPlan(validatePlan(state.plan, savedPrefs)); if (!imported) setTab("semana"); } catch { toast.error("O cardápio salvo precisa ser gerado novamente."); } }
     }).catch(e => { if (active) { toast.error(e.message); setLoadFailed(true); } }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
@@ -109,7 +118,17 @@ export default function MealPlanner() {
             <div className="grid grid-cols-2 gap-3"><div className="space-y-2"><Label htmlFor="people">Pessoas</Label><Input id="people" type="number" min={1} max={12} value={prefs.people} onChange={e => changePrefs({ people: Number(e.target.value) })} /></div><div className="space-y-2"><Label htmlFor="budget">Compras extras (R$)</Label><Input id="budget" type="number" min={0} max={10000} value={prefs.budget} onChange={e => changePrefs({ budget: Number(e.target.value) })} /></div></div>
             <div className="space-y-2"><Label htmlFor="minutes">Tempo por receita (minutos)</Label><Input id="minutes" type="number" min={10} max={120} value={prefs.minutes} onChange={e => changePrefs({ minutes: Number(e.target.value) })} /></div>
             <div className="space-y-2"><Label htmlFor="diet">Alimentação</Label><select id="diet" className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={prefs.diet} onChange={e => changePrefs({ diet: e.target.value })}>{diets.map(d => <option key={d}>{d}</option>)}</select></div>
-            <div className="space-y-2"><Label htmlFor="allergies">Alergias e restrições obrigatórias</Label><Textarea id="allergies" placeholder="Ex.: amendoim, leite, glúten. Se não houver, escreva nenhuma." maxLength={500} value={prefs.allergies} onChange={e => changePrefs({ allergies: e.target.value })} /></div>
+            {(memberInfo.restrictions.length > 0 || memberInfo.allergies.length > 0) && (
+              <div className="rounded-2xl bg-primary/5 border border-primary/20 p-4 space-y-2">
+                <div className="flex items-center gap-2 text-sm font-semibold text-primary"><Users className="w-4 h-4" /> Vindos dos membros da família ({memberInfo.count})</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {memberInfo.restrictions.map(r => <span key={r} className="px-2.5 py-1 rounded-full bg-warning/10 text-warning text-xs font-semibold">{r}</span>)}
+                  {memberInfo.allergies.map(a => <span key={a} className="px-2.5 py-1 rounded-full bg-destructive/10 text-destructive text-xs font-semibold flex items-center gap-1"><ShieldAlert className="w-3 h-3" />{a}</span>)}
+                </div>
+                <p className="text-xs text-muted-foreground">Estas restrições e alergias dos membros cadastrados são incluídas automaticamente ao gerar o cardápio.</p>
+              </div>
+            )}
+            <div className="space-y-2"><Label htmlFor="allergies">Alergias e restrições adicionais</Label><Textarea id="allergies" placeholder="Ex.: amendoim, leite, glúten. Se não houver, escreva nenhuma." maxLength={500} value={prefs.allergies} onChange={e => changePrefs({ allergies: e.target.value })} /></div>
             <div className="space-y-2"><Label htmlFor="dislikes">Alimentos que a família não gosta</Label><Textarea id="dislikes" placeholder="Ex.: quiabo, berinjela" maxLength={500} value={prefs.dislikes} onChange={e => changePrefs({ dislikes: e.target.value })} /></div>
             <div className="space-y-3"><Label>Refeições da semana</Label>{mealSlots.map(slot => <label key={slot} className="flex items-center gap-3 text-sm"><Checkbox checked={prefs.meals.includes(slot)} onCheckedChange={v => changePrefs({ meals: v === true ? [...prefs.meals, slot] : prefs.meals.filter(m => m !== slot) })} />{slot}</label>)}</div>
           </section>

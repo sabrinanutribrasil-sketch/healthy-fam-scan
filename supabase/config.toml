@@ -5,3 +5,9 @@ verify_jwt = false
 
 [functions.payments-webhook]
 verify_jwt = false
+
+[functions.meal-planner]
+verify_jwt = true
+
+[functions.scan-analyze]
+verify_jwt = true
