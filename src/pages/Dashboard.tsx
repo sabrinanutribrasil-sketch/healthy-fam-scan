@@ -157,7 +157,7 @@ const Dashboard = () => {
 
       {hasData ? (
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="relative">
-          <Link to="/app/perfil-nutricional" className="block relative overflow-hidden rounded-3xl gradient-primary p-6 text-primary-foreground shadow-glow">
+          <Link to="/app/historico" className="block relative overflow-hidden rounded-3xl gradient-primary p-6 text-primary-foreground shadow-glow">
             <div className="absolute -right-8 -top-8 w-40 h-40 rounded-full bg-primary-foreground/10" />
             <div className="absolute -right-16 -bottom-16 w-48 h-48 rounded-full bg-primary-foreground/5" />
             <div className="relative">
@@ -183,6 +183,9 @@ const Dashboard = () => {
                     <p className="text-sm font-bold">{s.v}</p>
                   </div>
                 ))}
+              </div>
+              <div className="flex items-center gap-1 text-xs opacity-80 mt-3">
+                Ver histórico completo <ChevronRight className="w-3 h-3" />
               </div>
             </div>
           </Link>

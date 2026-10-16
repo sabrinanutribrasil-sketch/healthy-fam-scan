@@ -13,6 +13,7 @@ import Family from "./pages/Family.tsx";
 import Gamification from "./pages/Gamification.tsx";
 import SettingsPage from "./pages/Settings.tsx";
 import NutritionProfile from "./pages/NutritionProfile.tsx";
+import ScanHistory from "./pages/ScanHistory.tsx";
 import Premium from "./pages/Premium.tsx";
 import CheckoutReturn from "./pages/CheckoutReturn.tsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
@@ -51,6 +52,7 @@ const App = () => (
               <Route path="gamificacao" element={<Gamification />} />
               <Route path="configuracoes" element={<SettingsPage />} />
               <Route path="perfil-nutricional" element={<NutritionProfile />} />
+              <Route path="historico" element={<ScanHistory />} />
               <Route path="premium" element={<Premium />} />
               <Route path="premium/confirmacao" element={<CheckoutReturn />} />
             </Route>
