@@ -4,7 +4,8 @@ import { PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line, XAxis, Toolt
 import { motion } from "framer-motion";
 import { useFamilyData, type ScanRecord } from "@/hooks/use-family-data";
 import { useSubscription } from "@/hooks/use-subscription";
-import { recipes, challenges } from "@/lib/mock-data";
+import { recipes } from "@/lib/mock-data";
+import { useGamification } from "@/hooks/use-gamification";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const MONTHS = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
@@ -107,6 +108,7 @@ function derivePieData(scans: ScanRecord[]) {
 const Dashboard = () => {
   const { family, members, scans, latestScore, avgScore, totalScans, loading } = useFamilyData();
   const { isPremium } = useSubscription();
+  const { challenges: realChallenges } = useGamification();
 
   const consumptionData = deriveConsumptionData(scans);
   const pieData = derivePieData(scans);
@@ -284,7 +286,7 @@ const Dashboard = () => {
           <Link to="/app/gamificacao" className="text-xs text-primary font-semibold flex items-center">Ver tudo <ChevronRight className="w-3 h-3" /></Link>
         </div>
         <div className="space-y-2.5">
-          {challenges.slice(0, 2).map((c) => (
+          {realChallenges.slice(0, 2).map((c) => (
             <div key={c.id} className="bg-card rounded-2xl p-4 shadow-soft flex items-center gap-3">
               <div className="text-3xl">{c.emoji}</div>
               <div className="flex-1">
