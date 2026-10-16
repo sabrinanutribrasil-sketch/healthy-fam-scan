@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Pencil, Trash2, ShieldAlert, Target, Heart, Cake } from "lucide-react";
+import { ArrowLeft, Pencil, Trash2, ShieldAlert, Target, Heart, Cake, Scale, Ruler, Activity, Briefcase, Stethoscope } from "lucide-react";
 import { useFamilyMembers } from "@/hooks/use-family-members";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -40,6 +40,12 @@ const MemberProfile = () => {
 
   const restrictions = member.dietary_restrictions;
   const allergies = member.allergies;
+
+  const hasBMI = member.weight_kg != null && member.height_cm != null;
+  const bmi = hasBMI ? (member.weight_kg! / Math.pow(member.height_cm! / 100, 2)) : 0;
+  const bmiRounded = Math.round(bmi * 10) / 10;
+  const bmiCategory = bmi < 18.5 ? "Abaixo do peso" : bmi < 25 ? "Peso saudável" : bmi < 30 ? "Sobrepeso" : "Obesidade";
+  const bmiColor = bmi < 18.5 ? "text-warning" : bmi < 25 ? "text-success" : bmi < 30 ? "text-warning" : "text-destructive";
 
   return (
     <div className="pb-6">
@@ -147,6 +153,101 @@ const MemberProfile = () => {
             <p className="text-lg font-bold">{member.role}</p>
           </div>
         </div>
+
+        {/* Physical data */}
+        {(member.weight_kg != null || member.height_cm != null || member.sex) && (
+          <div className="grid grid-cols-3 gap-3">
+            {member.weight_kg != null && (
+              <div className="bg-card rounded-2xl p-4 shadow-soft">
+                <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center mb-2">
+                  <Scale className="w-4 h-4 text-primary" />
+                </div>
+                <p className="text-xs text-muted-foreground">Peso</p>
+                <p className="text-lg font-bold">{member.weight_kg} kg</p>
+              </div>
+            )}
+            {member.height_cm != null && (
+              <div className="bg-card rounded-2xl p-4 shadow-soft">
+                <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center mb-2">
+                  <Ruler className="w-4 h-4 text-primary" />
+                </div>
+                <p className="text-xs text-muted-foreground">Altura</p>
+                <p className="text-lg font-bold">{member.height_cm} cm</p>
+              </div>
+            )}
+            {member.sex && (
+              <div className="bg-card rounded-2xl p-4 shadow-soft">
+                <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center mb-2">
+                  <Heart className="w-4 h-4 text-primary" />
+                </div>
+                <p className="text-xs text-muted-foreground">Sexo</p>
+                <p className="text-lg font-bold">{member.sex}</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* BMI if both weight and height present */}
+        {hasBMI && (
+          <div className="bg-card rounded-3xl p-5 shadow-soft">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-9 h-9 rounded-xl gradient-fresh flex items-center justify-center">
+                <Activity className="w-4 h-4 text-primary" />
+              </div>
+              <h2 className="font-display text-lg">IMC</h2>
+            </div>
+            <div className="flex items-end gap-3">
+              <span className="text-4xl font-display">{bmiRounded}</span>
+              <span className={`text-sm font-semibold mb-1.5 ${bmiColor}`}>{bmiCategory}</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Índice de Massa Corporal · valor referencial</p>
+          </div>
+        )}
+
+        {/* Activity level */}
+        {member.activity_level && (
+          <div className="bg-card rounded-2xl p-4 shadow-soft flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-success/10 flex items-center justify-center shrink-0">
+              <Activity className="w-4 h-4 text-success" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Nível de atividade física</p>
+              <p className="text-sm font-bold">{member.activity_level}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Occupation */}
+        {member.occupation && (
+          <div className="bg-card rounded-2xl p-4 shadow-soft flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-accent/10 flex items-center justify-center shrink-0">
+              <Briefcase className="w-4 h-4 text-accent" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Ocupação</p>
+              <p className="text-sm font-bold">{member.occupation}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Medical conditions */}
+        {member.medical_conditions.length > 0 && (
+          <section>
+            <h2 className="font-display text-lg mb-3 flex items-center gap-2">
+              <Stethoscope className="w-4 h-4 text-muted-foreground" /> Condições médicas
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {member.medical_conditions.map((c) => (
+                <span
+                  key={c}
+                  className="px-3 py-2 rounded-2xl bg-destructive/10 text-destructive text-sm font-semibold"
+                >
+                  {c}
+                </span>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Actions */}
         <div className="space-y-2.5 pt-2">

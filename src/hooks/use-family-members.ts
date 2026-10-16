@@ -12,6 +12,12 @@ export type FamilyMember = {
   dietary_restrictions: string[];
   allergies: string[];
   nutrition_goals: string | null;
+  weight_kg: number | null;
+  height_cm: number | null;
+  sex: string | null;
+  activity_level: string | null;
+  occupation: string | null;
+  medical_conditions: string[];
   created_at: string;
 };
 
@@ -23,6 +29,12 @@ type NewMember = {
   dietary_restrictions: string[];
   allergies: string[];
   nutrition_goals: string | null;
+  weight_kg: number | null;
+  height_cm: number | null;
+  sex: string | null;
+  activity_level: string | null;
+  occupation: string | null;
+  medical_conditions: string[];
 };
 
 export function useFamilyMembers() {
@@ -64,7 +76,7 @@ export function useFamilyMembers() {
 
         const { data, error: mErr } = await supabase
           .from("family_members")
-          .select("id, family_id, display_name, age, role, avatar_emoji, dietary_restrictions, allergies, nutrition_goals, created_at")
+          .select("id, family_id, display_name, age, role, avatar_emoji, dietary_restrictions, allergies, nutrition_goals, weight_kg, height_cm, sex, activity_level, occupation, medical_conditions, created_at")
           .eq("family_id", fid)
           .order("created_at", { ascending: true });
 

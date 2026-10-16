@@ -16,6 +16,9 @@ const ROLE_OPTIONS = ["Mãe", "Pai", "Filha", "Filho", "Avó", "Avô", "Outro"];
 const EMOJI_OPTIONS = ["👤", "👩", "👨", "👧", "👦", "👵", "👴", "🧒", "👶"];
 const COMMON_RESTRICTIONS = ["Sem glúten", "Sem lactose", "Vegetariano", "Vegano", "Low carb", "Halal", "Kosher"];
 const COMMON_ALLERGIES = ["Amendoim", "Frutos do mar", "Ovo", "Leite", "Soja", "Trigo", "Castanhas"];
+const SEX_OPTIONS = ["Feminino", "Masculino", "Outro"];
+const ACTIVITY_OPTIONS = ["Sedentário", "Leve", "Moderado", "Ativo", "Muito ativo"];
+const COMMON_CONDITIONS = ["Diabetes", "Hipertensão", "Colesterol alto", "Obesidade", "Anemia", "Intolerância à glicose"];
 
 type EditState = { mode: "add" | "edit"; member?: FamilyMember };
 
@@ -260,6 +263,12 @@ type FormData = {
   dietary_restrictions: string[];
   allergies: string[];
   nutrition_goals: string;
+  weight_kg: string;
+  height_cm: string;
+  sex: string;
+  activity_level: string;
+  occupation: string;
+  medical_conditions: string[];
 };
 
 type NewMemberData = {
@@ -270,6 +279,12 @@ type NewMemberData = {
   dietary_restrictions: string[];
   allergies: string[];
   nutrition_goals: string | null;
+  weight_kg: number | null;
+  height_cm: number | null;
+  sex: string | null;
+  activity_level: string | null;
+  occupation: string | null;
+  medical_conditions: string[];
 };
 
 function MemberFormDialog({
@@ -294,19 +309,32 @@ function MemberFormDialog({
     dietary_restrictions: m?.dietary_restrictions ?? [],
     allergies: m?.allergies ?? [],
     nutrition_goals: m?.nutrition_goals ?? "",
+    weight_kg: m?.weight_kg != null ? String(m.weight_kg) : "",
+    height_cm: m?.height_cm != null ? String(m.height_cm) : "",
+    sex: m?.sex ?? "",
+    activity_level: m?.activity_level ?? "",
+    occupation: m?.occupation ?? "",
+    medical_conditions: m?.medical_conditions ?? [],
   });
 
   // Reset form when dialog opens with new edit state
   useEffect(() => {
     if (open) {
+      const em = editState.member;
       setForm({
-        display_name: editState.member?.display_name ?? "",
-        age: editState.member?.age != null ? String(editState.member.age) : "",
-        role: editState.member?.role ?? "Mãe",
-        avatar_emoji: editState.member?.avatar_emoji ?? "👤",
-        dietary_restrictions: editState.member?.dietary_restrictions ?? [],
-        allergies: editState.member?.allergies ?? [],
-        nutrition_goals: editState.member?.nutrition_goals ?? "",
+        display_name: em?.display_name ?? "",
+        age: em?.age != null ? String(em.age) : "",
+        role: em?.role ?? "Mãe",
+        avatar_emoji: em?.avatar_emoji ?? "👤",
+        dietary_restrictions: em?.dietary_restrictions ?? [],
+        allergies: em?.allergies ?? [],
+        nutrition_goals: em?.nutrition_goals ?? "",
+        weight_kg: em?.weight_kg != null ? String(em.weight_kg) : "",
+        height_cm: em?.height_cm != null ? String(em.height_cm) : "",
+        sex: em?.sex ?? "",
+        activity_level: em?.activity_level ?? "",
+        occupation: em?.occupation ?? "",
+        medical_conditions: em?.medical_conditions ?? [],
       });
     }
   }, [open, editState]);
@@ -327,6 +355,12 @@ function MemberFormDialog({
       dietary_restrictions: form.dietary_restrictions,
       allergies: form.allergies,
       nutrition_goals: form.nutrition_goals.trim() || null,
+      weight_kg: form.weight_kg.trim() ? Math.max(0.5, Math.min(500, Number(form.weight_kg))) || null : null,
+      height_cm: form.height_cm.trim() ? Math.max(30, Math.min(250, Number(form.height_cm))) || null : null,
+      sex: form.sex || null,
+      activity_level: form.activity_level || null,
+      occupation: form.occupation.trim() || null,
+      medical_conditions: form.medical_conditions,
     });
   };
 
@@ -453,6 +487,106 @@ function MemberFormDialog({
               placeholder="Ex: Energia & menopausa, crescimento saudável..."
               className="rounded-2xl h-11"
             />
+          </div>
+
+          {/* Physical: weight, height, sex */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="weight" className="text-xs mb-1.5 block">Peso (kg)</Label>
+              <Input
+                id="weight"
+                type="number"
+                step="0.1"
+                min={0}
+                max={500}
+                value={form.weight_kg}
+                onChange={(e) => setForm(f => ({ ...f, weight_kg: e.target.value }))}
+                placeholder="Ex: 68.5"
+                className="rounded-2xl h-11"
+              />
+            </div>
+            <div>
+              <Label htmlFor="height" className="text-xs mb-1.5 block">Altura (cm)</Label>
+              <Input
+                id="height"
+                type="number"
+                min={30}
+                max={250}
+                value={form.height_cm}
+                onChange={(e) => setForm(f => ({ ...f, height_cm: e.target.value }))}
+                placeholder="Ex: 170"
+                className="rounded-2xl h-11"
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label className="text-xs mb-1.5 block">Sexo</Label>
+            <div className="flex flex-wrap gap-1.5">
+              {SEX_OPTIONS.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, sex: f.sex === s ? "" : s }))}
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-smooth ${
+                    form.sex === s ? "gradient-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Activity level */}
+          <div>
+            <Label className="text-xs mb-1.5 block">Nível de atividade física</Label>
+            <div className="flex flex-wrap gap-1.5">
+              {ACTIVITY_OPTIONS.map((a) => (
+                <button
+                  key={a}
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, activity_level: f.activity_level === a ? "" : a }))}
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-smooth ${
+                    form.activity_level === a ? "gradient-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  {a}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Occupation */}
+          <div>
+            <Label htmlFor="occupation" className="text-xs mb-1.5 block">Ocupação</Label>
+            <Input
+              id="occupation"
+              value={form.occupation}
+              onChange={(e) => setForm(f => ({ ...f, occupation: e.target.value }))}
+              placeholder="Ex: Professora, estudante, aposentado..."
+              className="rounded-2xl h-11"
+              maxLength={80}
+            />
+          </div>
+
+          {/* Medical conditions */}
+          <div>
+            <Label className="text-xs mb-2 block">Condições médicas (opcional)</Label>
+            <div className="flex flex-wrap gap-1.5">
+              {COMMON_CONDITIONS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, medical_conditions: toggleArrayItem(f.medical_conditions, c) }))}
+                  className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-smooth ${
+                    form.medical_conditions.includes(c) ? "bg-destructive/15 text-destructive ring-1 ring-destructive" : "bg-muted text-muted-foreground"
+                  }`}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
