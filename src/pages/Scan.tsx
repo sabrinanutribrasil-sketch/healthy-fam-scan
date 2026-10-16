@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { usePrivacyConsent } from "@/hooks/use-privacy-consent";
+import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 
 type ReceiptItem = {
@@ -60,6 +61,7 @@ const Scan = () => {
   const [cameraAccepted, setCameraAccepted] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const { cameraConsent, saveCameraConsent } = usePrivacyConsent();
+  const { user } = useAuth();
 
   useEffect(() => {
     if (!cameraConsent) setShowCameraConsent(true);
@@ -101,6 +103,35 @@ const Scan = () => {
       if (mode === "nota") setReceipt(data.result as ReceiptResult);
       else setLabel(data.result as LabelResult);
       toast.success("Análise concluída!");
+
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("family_id")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (profile?.family_id) {
+          const result = data.result as ReceiptResult | LabelResult;
+          const isReceipt = mode === "nota";
+          const receipt = result as ReceiptResult;
+          const insertData: Record<string, unknown> = {
+            family_id: profile.family_id,
+            scan_type: isReceipt ? "receipt" : "label",
+            result: result,
+          };
+          if (isReceipt) {
+            insertData.score = receipt.summary?.score ?? null;
+            insertData.store = receipt.store ?? null;
+            insertData.total = receipt.total ?? null;
+            insertData.item_count = receipt.items?.length ?? 0;
+            insertData.healthy_count = receipt.summary?.healthy_count ?? 0;
+            insertData.warning_count = receipt.summary?.warning_count ?? 0;
+            insertData.avoid_count = receipt.summary?.avoid_count ?? 0;
+          }
+          await supabase.from("scan_history").insert(insertData);
+        }
+      }
     } catch (err: any) {
       toast.error(err?.message ?? "Erro ao analisar imagem");
       reset();
