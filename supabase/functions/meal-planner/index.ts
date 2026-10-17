@@ -6,6 +6,16 @@ const json = (body: unknown, status = 200) => new Response(JSON.stringify(body),
 
 const DAYS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
 
+function strictSchema(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(strictSchema);
+  if (value && typeof value === "object") {
+    const obj = Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, strictSchema(entry)]));
+    if (obj.type === "object") obj.additionalProperties = false;
+    return obj;
+  }
+  return value;
+}
+
 function generateMockPlan(pantry: { name: string; quantity: string }[], prefs: Preferences): MealPlan {
   const available = pantry.map(p => p.name);
   const shopping: { name: string; quantity: string; category: string }[] = [];
@@ -77,6 +87,62 @@ function generateMockPlan(pantry: { name: string; quantity: string }[], prefs: P
   };
 }
 
+async function generateAIPlan(pantry: { name: string; quantity: string }[], prefs: Preferences): Promise<MealPlan> {
+  const apiKey = Deno.env.get("OPENAI_API_KEY");
+  if (!apiKey) throw new Error("OPENAI_API_KEY não configurada.");
+
+  const pantryList = pantry.map(p => `${p.name} (${p.quantity})`).join(", ");
+  const mealSlots = prefs.meals.join(", ");
+  const prompt = `Você é uma nutricionista brasileira criando um cardápio semanal para uma família de ${prefs.people} pessoas.
+
+Despensa atual: ${pantryList}.
+Orçamento semanal: R$ ${prefs.budget}.
+Tempo máximo por refeição: ${prefs.minutes} minutos.
+Dieta: ${prefs.diet}.
+Alergias/restrições: ${prefs.allergies || "nenhuma"}.
+Preferências a evitar: ${prefs.dislikes || "nenhuma"}.
+Refeições por dia: ${mealSlots}.
+
+Gere um cardápio para os 7 dias (Segunda a Domingo), cada dia com as refeições solicitadas. Para cada refeição inclua: título, tempo de preparo em minutos (até ${prefs.minutes}), ingredientes com quantidade e se estão disponíveis na despensa (available: true/false), e modo de preparo passo a passo.
+
+Inclua uma lista de compras para itens faltantes, dicas práticas (até 5), e custo estimado total.
+
+Marque "available: true" apenas se o ingrediente está literalmente na despensa. Seja criativa, variada e respeite TODAS as restrições alimentares.`;
+
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "gpt-4o",
+      messages: [
+        { role: "system", content: "Você é uma nutricionista brasileira especializada em planejamento alimentar familiar. Responda sempre em português brasileiro." },
+        { role: "user", content: prompt },
+      ],
+      response_format: { type: "json_schema", json_schema: { name: "meal_plan", schema: strictSchema(planSchema), strict: true } },
+      temperature: 0.7,
+      max_tokens: 4000,
+    }),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    console.error("OpenAI error", response.status, errText);
+    throw new Error("A IA não conseguiu gerar o cardápio agora. Tente novamente.");
+  }
+
+  const data = await response.json();
+  const content = data.choices?.[0]?.message?.content;
+  if (!content) throw new Error("A IA retornou uma resposta vazia. Tente novamente.");
+
+  let parsed: unknown;
+  try { parsed = JSON.parse(content); } catch { throw new Error("A IA retornou um formato inválido. Tente novamente."); }
+
+  return validatePlan(parsed, prefs);
+}
+
 Deno.serve(async req => {
   if (req.method === "OPTIONS") return new Response(null, { headers: cors });
   if (req.method !== "POST") return json({ error: "Método inválido." }, 405);
@@ -134,8 +200,13 @@ Deno.serve(async req => {
     }
     if (existing?.generated_at && Date.now() - new Date(existing.generated_at).getTime() < 30000) return json({ error: "Aguarde alguns segundos antes de gerar novamente." }, 429);
 
-    await new Promise(r => setTimeout(r, 1500));
-    const plan = validatePlan(generateMockPlan(pantry, preferences), preferences);
+    let plan: MealPlan;
+    try {
+      plan = await generateAIPlan(pantry, preferences);
+    } catch (aiErr) {
+      console.error("AI plan generation failed, falling back to mock:", aiErr instanceof Error ? aiErr.message : "unknown");
+      plan = validatePlan(generateMockPlan(pantry, preferences), preferences);
+    }
     const generated_at = new Date().toISOString();
     const { error } = await db.from("family_meal_planning").upsert({ family_id: profile.family_id, pantry, preferences: body.preferences, plan, generated_at, checked_items: [] });
     if (error) throw new Error("O cardápio não pôde ser salvo. Tente novamente.");
@@ -145,13 +216,3 @@ Deno.serve(async req => {
     return json({ error: e instanceof Error && e.name === "TimeoutError" ? "A geração demorou mais que o esperado. Tente novamente." : "Não foi possível concluir. Tente novamente." }, 500);
   }
 });
-
-function strictSchema(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(strictSchema);
-  if (value && typeof value === "object") {
-    const obj = Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, strictSchema(entry)]));
-    if (obj.type === "object") obj.additionalProperties = false;
-    return obj;
-  }
-  return value;
-}
