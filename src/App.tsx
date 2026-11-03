@@ -20,6 +20,7 @@ import CheckoutReturn from "./pages/CheckoutReturn.tsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
 import TermsOfUse from "./pages/TermsOfUse.tsx";
 import DataUsage from "./pages/DataUsage.tsx";
+import AccountDeletion from "./pages/AccountDeletion.tsx";
 import Sustainability from "./pages/Sustainability.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { AppShell } from "./components/AppShell.tsx";
@@ -63,6 +64,7 @@ const App = () => (
             <Route path="/privacidade" element={<PrivacyPolicy />} />
             <Route path="/termos" element={<TermsOfUse />} />
             <Route path="/uso-de-dados" element={<DataUsage />} />
+            <Route path="/exclusao-de-conta" element={<AccountDeletion />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

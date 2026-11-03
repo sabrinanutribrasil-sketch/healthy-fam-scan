@@ -76,6 +76,7 @@ const Index = () => {
             <Link to="/privacidade" className="hover:text-foreground transition-colors">Privacidade</Link>
             <Link to="/termos" className="hover:text-foreground transition-colors">Termos</Link>
             <Link to="/uso-de-dados" className="hover:text-foreground transition-colors">Dados & Suporte</Link>
+            <Link to="/exclusao-de-conta" className="hover:text-foreground transition-colors">Excluir conta</Link>
           </div>
           <p className="text-center text-[10px] text-muted-foreground/60 mt-2">
             NutriCasa v1.0 · Seus dados são protegidos pela LGPD

@@ -11,3 +11,6 @@ verify_jwt = true
 
 [functions.scan-analyze]
 verify_jwt = true
+
+[functions.delete-account]
+verify_jwt = true

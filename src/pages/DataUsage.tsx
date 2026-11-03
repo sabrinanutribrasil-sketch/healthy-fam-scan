@@ -1,24 +1,52 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Database, Camera, Brain, MessageSquare, Send, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Database, Camera, Brain, MessageSquare, Send, CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const DataUsage = () => {
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name || !form.email || !form.message) {
       toast.error("Preencha todos os campos obrigatórios");
       return;
     }
-    setSent(true);
-    toast.success("Mensagem enviada! Responderemos em breve.");
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(form.email)) {
+      toast.error("Informe um endereço de e-mail válido.");
+      return;
+    }
+
+    setSubmitting(true);
+
+    try {
+      const { error } = await supabase.from("support_requests").insert({
+        email: form.email,
+        name: form.name,
+        request_type: "general_support",
+        subject: form.subject || null,
+        message: form.message,
+      });
+
+      if (error) throw error;
+
+      setSent(true);
+      toast.success("Mensagem enviada! Responderemos em breve.");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Erro desconhecido";
+      toast.error(`Não foi possível enviar a mensagem: ${msg}`);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -107,8 +135,17 @@ const DataUsage = () => {
                   <Label className="text-xs">Mensagem</Label>
                   <Textarea value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} placeholder="Descreva sua dúvida ou solicitação..." className="rounded-xl bg-muted mt-1 min-h-[100px]" />
                 </div>
-                <Button type="submit" className="w-full h-11 rounded-xl gradient-primary shadow-glow gap-2">
-                  <Send className="w-4 h-4" /> Enviar mensagem
+                <Button type="submit" disabled={submitting} className="w-full h-11 rounded-xl gradient-primary shadow-glow gap-2">
+                  {submitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Enviando...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" /> Enviar mensagem
+                    </>
+                  )}
                 </Button>
               </form>
             )}

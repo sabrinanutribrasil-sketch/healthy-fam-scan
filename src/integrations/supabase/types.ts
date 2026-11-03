@@ -228,6 +228,42 @@ export type Database = {
         }
         Relationships: []
       }
+      support_requests: {
+        Row: {
+          id: string
+          email: string
+          name: string | null
+          request_type: string
+          subject: string | null
+          message: string
+          status: string
+          created_at: string
+          processed_at: string | null
+        }
+        Insert: {
+          id?: string
+          email: string
+          name?: string | null
+          request_type?: string
+          subject?: string | null
+          message: string
+          status?: string
+          created_at?: string
+          processed_at?: string | null
+        }
+        Update: {
+          id?: string
+          email?: string
+          name?: string | null
+          request_type?: string
+          subject?: string | null
+          message?: string
+          status?: string
+          created_at?: string
+          processed_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

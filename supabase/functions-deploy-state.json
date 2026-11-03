@@ -1,0 +1,33 @@
+{
+  "projectId": "72099876",
+  "functions": {
+    "create-checkout": {
+      "hasChanged": false,
+      "hash": "8a21e7f03bda67105d08defd61ca43b71465230b834c715caf49e274580852ca677d9f8e109617ad7f42f31683da9b94fb14db2866f4574671e1e27946f0cb1b"
+    },
+    "meal-planner": {
+      "hasChanged": false,
+      "hash": "cc6b4e49ad1fec5535c30076c5604e6cf4282436e95e957defdaba8f84a04e52677d9f8e109617ad7f42f31683da9b94fb14db2866f4574671e1e27946f0cb1b"
+    },
+    "payments-webhook": {
+      "hasChanged": false,
+      "hash": "f8d74efa01edb214c887d8063bb9bc118ffb02226de628c481cfd8d72b6ec7ac677d9f8e109617ad7f42f31683da9b94fb14db2866f4574671e1e27946f0cb1b"
+    },
+    "scan-analyze": {
+      "hasChanged": false,
+      "hash": "4cf23916d16c44375d26318d9ea2dd8e20893a5ad3195328f7cdc10625b7ca9b"
+    },
+    "stripe-checkout": {
+      "hasChanged": false,
+      "hash": "c6b0231e24e0a9d75a3839dca4b17ef7688e6f55543d1abed0a2f27d9776ac47"
+    },
+    "stripe-webhook": {
+      "hasChanged": false,
+      "hash": "e680b8a20b9ba0f0c5bc0010ab34b271998220ffd1bbbf253d98e21a11dd875e"
+    },
+    "delete-account": {
+      "hasChanged": false,
+      "hash": "3f95c3de985f639f9df1f703eedc68a67a386c33d0496862f0092e55cd64a988"
+    }
+  }
+}
