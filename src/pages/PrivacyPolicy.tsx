@@ -203,21 +203,92 @@ const sections: Section[] = [
     icon: Trash2,
     title: "8. Exclusão de conta e dados",
     body: (
-      <ul>
-        <li>
-          Você pode solicitar a exclusão da sua conta e de todos os dados
-          associados a qualquer momento.
-        </li>
-        <li>A solicitação será atendida no prazo máximo de 15 dias úteis.</li>
-        <li>
-          Após a exclusão, os dados serão removidos permanentemente dos bancos
-          de dados ativos.
-        </li>
-        <li>
-          Dados de pagamento podem ser mantidos pelo período exigido por
-          obrigações legais ou regulatórias.
-        </li>
-      </ul>
+      <>
+        <p className="font-semibold text-foreground">
+          Retenção do histórico alimentar
+        </p>
+        <ul>
+          <li>
+            O NutriCasa tem como finalidade acompanhar a evolução dos hábitos
+            alimentares e contribuir para a construção de um estilo de vida
+            saudável ao longo do tempo.
+          </li>
+          <li>
+            Por isso, os dados e históricos alimentares{" "}
+            <strong>não são excluídos automaticamente</strong> após determinado
+            período.
+          </li>
+          <li>
+            Enquanto sua conta estiver ativa, suas informações poderão
+            permanecer armazenadas para permitir o acompanhamento de sua
+            evolução e a continuidade da experiência no aplicativo.
+          </li>
+        </ul>
+        <p className="font-semibold text-foreground">
+          Solicitação de exclusão de conta
+        </p>
+        <ul>
+          <li>
+            Você poderá solicitar a exclusão de sua conta e dos dados pessoais
+            associados a qualquer momento.
+          </li>
+          <li>
+            O NutriCasa prevê o prazo operacional de até{" "}
+            <strong>15 dias úteis</strong> para processar as solicitações de
+            exclusão, observadas as exigências legais aplicáveis.
+          </li>
+          <li>
+            A exclusão respeitará as hipóteses legais de conservação de dados
+            previstas na LGPD. Determinadas informações poderão ser mantidas
+            pelo período necessário quando houver obrigação legal ou outra
+            hipótese legítima de conservação.
+          </li>
+        </ul>
+        <p className="font-semibold text-foreground">
+          Exclusão de conta e exclusão de registros individuais
+        </p>
+        <ul>
+          <li>
+            A exclusão de conta e a exclusão de registros individuais são
+            operações distintas.
+          </li>
+          <li>
+            Quando disponíveis no aplicativo, registros individuais, como
+            escaneamentos de notas fiscais ou informações de membros da família,
+            poderão ser excluídos sem que isso implique o encerramento da conta.
+          </li>
+          <li>
+            A solicitação de exclusão da conta abrangerá os dados pessoais e
+            registros associados, conforme os limites técnicos e legais
+            aplicáveis.
+          </li>
+        </ul>
+        <p className="font-semibold text-foreground">
+          Dados processados por terceiros
+        </p>
+        <ul>
+          <li>
+            Alguns recursos do NutriCasa podem utilizar serviços de terceiros
+            para processamento de informações, como ferramentas de inteligência
+            artificial para análise de imagens.
+          </li>
+          <li>
+            O compartilhamento de informações ocorrerá apenas na medida
+            necessária para a prestação dos serviços, observadas as finalidades
+            informadas e as condições aplicáveis a cada provedor.
+          </li>
+          <li>
+            O tratamento, a retenção e a eventual exclusão de dados por esses
+            fornecedores estarão sujeitos às condições contratuais e políticas
+            de privacidade correspondentes.
+          </li>
+          <li>
+            A exclusão da conta no NutriCasa não significa necessariamente a
+            eliminação imediata de eventuais registros mantidos por terceiros,
+            quando houver retenção aplicável.
+          </li>
+        </ul>
+      </>
     ),
   },
   {
