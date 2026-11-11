@@ -337,6 +337,17 @@ const Dashboard = () => {
         </div>
       </div>
 
+      <Link to="/app/cardapio" className="block">
+        <div className="rounded-2xl p-4 gradient-fresh border border-primary/10 flex items-center gap-3">
+          <ShoppingBasket className="w-5 h-5 shrink-0 text-primary" />
+          <div>
+            <p className="font-semibold text-sm">Cardápio semanal</p>
+            <p className="text-xs text-muted-foreground">Receitas e lista de compras com o que há em casa</p>
+          </div>
+          <ChevronRight className="w-4 h-4 ml-auto text-muted-foreground" />
+        </div>
+      </Link>
+
       {!isPremium && (
         <Link to="/app/premium" className="block">
           <div className="rounded-2xl p-4 gradient-warm text-accent-foreground flex items-center gap-3 shadow-glow">

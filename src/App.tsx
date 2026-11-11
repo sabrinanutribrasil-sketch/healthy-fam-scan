@@ -22,6 +22,7 @@ import TermsOfUse from "./pages/TermsOfUse.tsx";
 import DataUsage from "./pages/DataUsage.tsx";
 import AccountDeletion from "./pages/AccountDeletion.tsx";
 import Sustainability from "./pages/Sustainability.tsx";
+import MealPlanner from "./pages/MealPlanner.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { AppShell } from "./components/AppShell.tsx";
 import { AuthProvider } from "./hooks/use-auth";
@@ -60,6 +61,7 @@ const App = () => (
               <Route path="premium" element={<Premium />} />
               <Route path="premium/confirmacao" element={<CheckoutReturn />} />
               <Route path="sustentabilidade" element={<Sustainability />} />
+              <Route path="cardapio" element={<MealPlanner />} />
             </Route>
             <Route path="/privacidade" element={<PrivacyPolicy />} />
             <Route path="/termos" element={<TermsOfUse />} />
