@@ -7,6 +7,9 @@ import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { StripeEmbeddedCheckout } from "@/components/StripeEmbeddedCheckout";
 import { isPaymentsConfigured, isPaymentTestMode } from "@/lib/stripe";
 import { useSubscription } from "@/hooks/use-subscription";
+import { useAuth } from "@/hooks/use-auth";
+import { isNativeAndroid, isNativeBillingConfigured, purchaseNativePlan, restoreNativePurchases } from "@/lib/native-purchases";
+import { toast } from "sonner";
 
 type Plan = "monthly" | "yearly";
 
@@ -34,7 +37,24 @@ export default function Premium() {
   const period = plan === "monthly" ? "/mês" : "/ano";
   const savings = plan === "yearly" ? "Economize R$ 29,80" : null;
   const priceId = plan === "monthly" ? "nutricasa_premium_monthly" : "nutricasa_premium_yearly";
-  const paymentsConfigured = isPaymentsConfigured();
+  const native = isNativeAndroid();
+  const paymentsConfigured = native ? isNativeBillingConfigured() : isPaymentsConfigured();
+  const { user } = useAuth();
+  const [buying, setBuying] = useState(false);
+  const startPurchase = async () => {
+    if (!native) return setShowCheckout(true);
+    if (!user) return;
+    setBuying(true);
+    try {
+      await purchaseNativePlan(user.id, plan);
+      toast.success("Compra concluída! O Premium será ativado em instantes.");
+    } catch (e) {
+      const cancelled = typeof e === "object" && e !== null && "userCancelled" in e && (e as { userCancelled?: boolean }).userCancelled;
+      if (!cancelled) toast.error(e instanceof Error ? e.message : "Não foi possível concluir a compra.");
+    } finally {
+      setBuying(false);
+    }
+  };
 
   if (showCheckout) {
     return (
@@ -136,9 +156,14 @@ export default function Premium() {
             </div>
             {savings && <p className="text-xs text-primary mt-1">{savings}</p>}
           </div>
-          <Button className="w-full" onClick={() => setShowCheckout(true)} disabled={isPremium || !paymentsConfigured}>
-            {isPremium ? "Premium ativo" : paymentsConfigured ? "Começar teste grátis de 7 dias" : "Pagamento indisponível"}
+          <Button className="w-full" onClick={startPurchase} disabled={isPremium || !paymentsConfigured || buying}>
+            {isPremium ? "Premium ativo" : buying ? "Abrindo Google Play..." : paymentsConfigured ? "Começar teste grátis de 7 dias" : "Pagamento indisponível"}
           </Button>
+          {native && !isPremium && user && (
+            <Button variant="ghost" className="w-full" onClick={() => restoreNativePurchases(user.id).then(() => toast.success("Compras restauradas.")).catch(() => toast.error("Não foi possível restaurar."))}>
+              Restaurar compras
+            </Button>
+          )}
           {isPremium && subscription?.current_period_end && (
             <p className="text-center text-xs text-muted-foreground">
               Acesso garantido até {new Date(subscription.current_period_end).toLocaleDateString("pt-BR")}.

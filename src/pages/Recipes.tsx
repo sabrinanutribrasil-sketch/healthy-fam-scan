@@ -29,10 +29,10 @@ const Recipes = () => {
           <Sparkles className="w-5 h-5 text-primary-foreground" />
         </div>
         <div className="flex-1">
-          <p className="font-semibold text-sm">O que cozinhar hoje?</p>
-          <p className="text-xs text-muted-foreground">IA sugere com o que você já tem em casa</p>
+          <p className="font-semibold text-sm">Cardápio da semana</p>
+          <p className="text-xs text-muted-foreground">IA monta 7 dias com o que você já tem em casa</p>
         </div>
-        <button className="text-xs font-bold text-primary">Gerar →</button>
+        <Link to="/app/cardapio" className="text-xs font-bold text-primary">Gerar →</Link>
       </div>
 
       {/* Filters */}
