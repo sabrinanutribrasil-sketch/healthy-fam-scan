@@ -117,69 +117,6 @@ export type Database = {
           },
         ]
       }
-      scan_history: {
-        Row: {
-          id: string
-          family_id: string
-          user_id: string
-          scan_type: string
-          result: Json
-          score: number | null
-          store: string | null
-          total: number | null
-          item_count: number
-          healthy_count: number
-          warning_count: number
-          avoid_count: number
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          family_id: string
-          user_id?: string
-          scan_type: string
-          result: Json
-          score?: number | null
-          store?: string | null
-          total?: number | null
-          item_count?: number
-          healthy_count?: number
-          warning_count?: number
-          avoid_count?: number
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          family_id?: string
-          user_id?: string
-          scan_type?: string
-          result?: Json
-          score?: number | null
-          store?: string | null
-          total?: number | null
-          item_count?: number
-          healthy_count?: number
-          warning_count?: number
-          avoid_count?: number
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "scan_history_family_id_fkey"
-            columns: ["family_id"]
-            isOneToOne: false
-            referencedRelation: "families"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "scan_history_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "auth.users"
-            referencedColumns: ["id"]
-          }
-        ]
-      }
       subscriptions: {
         Row: {
           cancel_at_period_end: boolean
@@ -225,42 +162,6 @@ export type Database = {
           stripe_subscription_id?: string
           updated_at?: string
           user_id?: string
-        }
-        Relationships: []
-      }
-      support_requests: {
-        Row: {
-          id: string
-          email: string
-          name: string | null
-          request_type: string
-          subject: string | null
-          message: string
-          status: string
-          created_at: string
-          processed_at: string | null
-        }
-        Insert: {
-          id?: string
-          email: string
-          name?: string | null
-          request_type?: string
-          subject?: string | null
-          message: string
-          status?: string
-          created_at?: string
-          processed_at?: string | null
-        }
-        Update: {
-          id?: string
-          email?: string
-          name?: string | null
-          request_type?: string
-          subject?: string | null
-          message?: string
-          status?: string
-          created_at?: string
-          processed_at?: string | null
         }
         Relationships: []
       }
