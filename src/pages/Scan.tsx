@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
+import type { Json, TablesInsert } from "@/integrations/supabase/types";
 import { usePrivacyConsent } from "@/hooks/use-privacy-consent";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
@@ -115,10 +116,10 @@ const Scan = () => {
           const result = data.result as ReceiptResult | LabelResult;
           const isReceipt = mode === "nota";
           const receipt = result as ReceiptResult;
-          const insertData: Record<string, unknown> = {
+          const insertData: TablesInsert<"scan_history"> = {
             family_id: profile.family_id,
             scan_type: isReceipt ? "receipt" : "label",
-            result: result,
+            result: result as unknown as Json,
           };
           if (isReceipt) {
             insertData.score = receipt.summary?.score ?? null;
