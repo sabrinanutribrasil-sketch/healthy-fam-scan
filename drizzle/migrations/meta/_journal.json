@@ -8,6 +8,13 @@
       "when": 1791411487910,
       "tag": "0000_family_weekly_meal_planning",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794435419704,
+      "tag": "0001_create_scans_members_gamification_support",
+      "breakpoints": true
     }
   ]
 }

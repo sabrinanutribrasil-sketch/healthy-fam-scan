@@ -14,7 +14,7 @@ function deriveConsumptionData(scans: ScanRecord[]) {
   const receiptScans = scans.filter(s => s.scan_type === "receipt" && s.score != null);
   if (receiptScans.length === 0) return [];
 
-  const byMonth: Record<string, { saudavel: number; processado: number; count: number }> = {};
+  const byMonth: Record<string, { saudavel: number; processado: number; count: number; label: string }> = {};
   for (const scan of receiptScans) {
     const d = new Date(scan.created_at);
     const key = `${d.getFullYear()}-${d.getMonth()}`;

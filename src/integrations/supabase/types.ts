@@ -41,6 +41,35 @@ export type Database = {
         }
         Relationships: []
       }
+      family_achievements: {
+        Row: {
+          achievement_key: string
+          earned_at: string
+          family_id: string
+          id: string
+        }
+        Insert: {
+          achievement_key: string
+          earned_at?: string
+          family_id: string
+          id?: string
+        }
+        Update: {
+          achievement_key?: string
+          earned_at?: string
+          family_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "family_achievements_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       family_meal_planning: {
         Row: {
           checked_items: string[]
@@ -79,6 +108,109 @@ export type Database = {
           },
         ]
       }
+      family_members: {
+        Row: {
+          activity_level: string | null
+          age: number | null
+          allergies: string[]
+          avatar_emoji: string
+          created_at: string
+          dietary_restrictions: string[]
+          display_name: string
+          family_id: string
+          height_cm: number | null
+          id: string
+          medical_conditions: string[] | null
+          nutrition_goals: string | null
+          occupation: string | null
+          role: string
+          sex: string | null
+          updated_at: string
+          weight_kg: number | null
+        }
+        Insert: {
+          activity_level?: string | null
+          age?: number | null
+          allergies?: string[]
+          avatar_emoji?: string
+          created_at?: string
+          dietary_restrictions?: string[]
+          display_name: string
+          family_id: string
+          height_cm?: number | null
+          id?: string
+          medical_conditions?: string[] | null
+          nutrition_goals?: string | null
+          occupation?: string | null
+          role?: string
+          sex?: string | null
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Update: {
+          activity_level?: string | null
+          age?: number | null
+          allergies?: string[]
+          avatar_emoji?: string
+          created_at?: string
+          dietary_restrictions?: string[]
+          display_name?: string
+          family_id?: string
+          height_cm?: number | null
+          id?: string
+          medical_conditions?: string[] | null
+          nutrition_goals?: string | null
+          occupation?: string | null
+          role?: string
+          sex?: string | null
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "family_members_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      family_points: {
+        Row: {
+          family_id: string
+          id: string
+          last_activity_date: string | null
+          streak_days: number
+          total_points: number
+          updated_at: string
+        }
+        Insert: {
+          family_id: string
+          id?: string
+          last_activity_date?: string | null
+          streak_days?: number
+          total_points?: number
+          updated_at?: string
+        }
+        Update: {
+          family_id?: string
+          id?: string
+          last_activity_date?: string | null
+          streak_days?: number
+          total_points?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "family_points_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: true
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_emoji: string
@@ -110,6 +242,62 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "profiles_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scan_history: {
+        Row: {
+          avoid_count: number | null
+          created_at: string
+          family_id: string
+          healthy_count: number | null
+          id: string
+          item_count: number | null
+          result: Json
+          scan_type: string
+          score: number | null
+          store: string | null
+          total: number | null
+          user_id: string
+          warning_count: number | null
+        }
+        Insert: {
+          avoid_count?: number | null
+          created_at?: string
+          family_id: string
+          healthy_count?: number | null
+          id?: string
+          item_count?: number | null
+          result: Json
+          scan_type: string
+          score?: number | null
+          store?: string | null
+          total?: number | null
+          user_id?: string
+          warning_count?: number | null
+        }
+        Update: {
+          avoid_count?: number | null
+          created_at?: string
+          family_id?: string
+          healthy_count?: number | null
+          id?: string
+          item_count?: number | null
+          result?: Json
+          scan_type?: string
+          score?: number | null
+          store?: string | null
+          total?: number | null
+          user_id?: string
+          warning_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scan_history_family_id_fkey"
             columns: ["family_id"]
             isOneToOne: false
             referencedRelation: "families"
@@ -162,6 +350,42 @@ export type Database = {
           stripe_subscription_id?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      support_requests: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          message: string
+          name: string | null
+          processed_at: string | null
+          request_type: string
+          status: string
+          subject: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          message: string
+          name?: string | null
+          processed_at?: string | null
+          request_type?: string
+          status?: string
+          subject?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string
+          name?: string | null
+          processed_at?: string | null
+          request_type?: string
+          status?: string
+          subject?: string | null
         }
         Relationships: []
       }
