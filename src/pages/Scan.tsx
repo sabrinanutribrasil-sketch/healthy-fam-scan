@@ -8,6 +8,8 @@ import type { Json, TablesInsert } from "@/integrations/supabase/types";
 import { usePrivacyConsent } from "@/hooks/use-privacy-consent";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
+import { compressImage } from "@/lib/image-compress";
 
 type ReceiptItem = {
   name: string;
@@ -63,6 +65,7 @@ const Scan = () => {
   const fileRef = useRef<HTMLInputElement>(null);
   const { cameraConsent, saveCameraConsent } = usePrivacyConsent();
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!cameraConsent) setShowCameraConsent(true);
@@ -85,14 +88,14 @@ const Scan = () => {
   const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 8 * 1024 * 1024) {
-      toast.error("Imagem muito grande (máx 8MB)");
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error("Imagem muito grande (máx 20MB)");
       return;
     }
     reset();
     setAnalyzing(true);
     try {
-      const dataUrl = await toBase64(file);
+      const dataUrl = await compressImage(file).catch(() => toBase64(file));
       setPreview(dataUrl);
 
       const { data, error } = await supabase.functions.invoke("scan-analyze", {
@@ -310,6 +313,13 @@ const Scan = () => {
               </div>
             </div>
 
+            <Button
+              size="lg"
+              className="w-full h-12 rounded-2xl gap-2"
+              onClick={() => navigate("/app/cardapio", { state: { pantry: receipt.items.filter(i => !["higiene", "limpeza"].includes(i.category)).map(i => ({ name: i.name, quantity: i.quantity ? `${i.quantity}${i.unit ? " " + i.unit : ""}` : "" })) } })}
+            >
+              <Sparkles className="w-4 h-4" /> Criar cardápio da semana com estes alimentos
+            </Button>
             <Button onClick={reset} variant="outline" size="lg" className="w-full h-12 rounded-2xl gap-2">
               <RotateCcw className="w-4 h-4" /> Escanear novamente
             </Button>

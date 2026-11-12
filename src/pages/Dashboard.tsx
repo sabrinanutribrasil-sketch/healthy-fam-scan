@@ -200,8 +200,8 @@ const Dashboard = () => {
               <div className="flex items-center gap-2 text-xs uppercase tracking-wider opacity-80 mb-2">
                 <Sparkles className="w-3.5 h-3.5" /> Comece a analisar
               </div>
-              <h2 className="text-2xl font-display mb-2">Escaneie sua primeira nota fiscal</h2>
-              <p className="text-sm opacity-90 mb-4">A IA lê seus produtos e calcula o score nutricional da sua casa.</p>
+              <h2 className="text-2xl font-display mb-2">Bem-vinda à NutriCasa! 🌱</h2>
+              <p className="text-sm opacity-90 mb-4">Tire a foto da sua primeira nota de supermercado para conhecermos a saúde da sua casa e montar o cardápio da semana.</p>
               <div className="inline-flex items-center gap-2 bg-primary-foreground/15 backdrop-blur px-4 py-2.5 rounded-xl">
                 <ScanLine className="w-4 h-4" />
                 <span className="text-sm font-semibold">Escanear agora</span>
