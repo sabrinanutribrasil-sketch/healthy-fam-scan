@@ -92,6 +92,21 @@ const Login = () => {
   };
 
 
+  const handleForgot = async () => {
+    const email = form.email.trim();
+    if (!z.string().email().safeParse(email).success) {
+      toast.error("Digite seu e-mail no campo acima e toque novamente em \"Esqueci minha senha\".");
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setLoading(false);
+    if (error) toast.error(error.message);
+    else toast.success("Enviamos um link para redefinir sua senha. Confira seu e-mail.");
+  };
+
   return (
     <div className="min-h-screen bg-background flex justify-center">
       <div className="w-full max-w-md min-h-screen gradient-fresh p-6 flex flex-col">
@@ -128,6 +143,11 @@ const Login = () => {
             <div>
               <Label>Senha</Label>
               <Input type="password" value={form.password} onChange={set("password")} placeholder="••••••••" className="h-12 mt-1.5 rounded-xl bg-card" />
+              {mode === "login" && (
+                <button type="button" onClick={handleForgot} className="text-xs text-primary font-semibold mt-2">
+                  Esqueci minha senha
+                </button>
+              )}
             </div>
 
             {mode === "signup" && (
