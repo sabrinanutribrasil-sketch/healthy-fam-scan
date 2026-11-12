@@ -2,7 +2,7 @@ import { Capacitor } from "@capacitor/core";
 
 export type NativePlan = "monthly" | "yearly";
 
-const androidKey = import.meta.env.VITE_REVENUECAT_ANDROID_KEY as string | undefined;
+const androidKey = (import.meta.env.VITE_REVENUECAT_ANDROID_KEY as string | undefined) || "goog_jANtOhsWoXsUmtGqtRXFRcxZKwI";
 
 /** True when running inside the Android app; store rules require Google Play Billing there. */
 export const isNativeAndroid = () => Capacitor.isNativePlatform() && Capacitor.getPlatform() === "android";
