@@ -12,6 +12,9 @@ import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import { defaultPreferences, mealSlots, diets, validateInput, validatePlan, type PantryItem, type Preferences, type MealPlan } from "@/lib/meal-planner";
 import mealPhoto from "@/assets/hero-meal.jpg";
+import { SmartShoppingList } from "@/components/SmartShoppingList";
+import { useFamilyData } from "@/hooks/use-family-data";
+import { validateShoppingState, type ShoppingState } from "@/lib/smart-shopping";
 
 async function request(body: Record<string, unknown>) {
   const { data, error } = await supabase.functions.invoke("meal-planner", { body });
@@ -28,11 +31,13 @@ async function request(body: Record<string, unknown>) {
 const money = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 export default function MealPlanner() {
   const { user } = useAuth();
+  const familyData = useFamilyData();
   const location = useLocation();
   const [pantry, setPantry] = useState<PantryItem[]>([]);
   const [prefs, setPrefs] = useState<Preferences>({ ...defaultPreferences });
   const [plan, setPlan] = useState<MealPlan | null>(null);
   const [checked, setChecked] = useState<string[]>([]);
+  const [shoppingState, setShoppingState] = useState<ShoppingState>({ items: [] });
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState("");
   const [loading, setLoading] = useState(true);
@@ -51,6 +56,8 @@ export default function MealPlanner() {
     request({ action: "load" }).then(data => {
       if (!active) return;
       const state = data.state;
+      try { setShoppingState(validateShoppingState(state?.smart_shopping_state ?? { items: [] })); }
+      catch { setLoadFailed(true); throw new Error("Não foi possível abrir a lista de compras salva."); }
       let items: PantryItem[] = state?.pantry ?? [];
       const savedPrefs = { ...defaultPreferences, ...state?.preferences };
       const imported = location.state?.pantry;
@@ -101,12 +108,17 @@ export default function MealPlanner() {
     const a = document.createElement("a"); a.href = url; a.download = "nutricasa-lista-de-compras.txt"; a.click(); URL.revokeObjectURL(url);
   };
   const categories = [...new Set(plan?.shopping.map(i => i.category) ?? [])];
+  const saveShopping = async (state: ShoppingState) => {
+    const validated = validateShoppingState(state);
+    await request({ action: "shopping", state: validated });
+    setShoppingState(validated);
+  };
   return <div className="p-5 pb-8 space-y-5">
     <Button asChild variant="ghost" size="sm"><Link to="/app/receitas"><ArrowLeft /> Receitas</Link></Button>
     <header><h1 className="text-3xl font-display">Cardápio da casa</h1><p className="text-sm text-muted-foreground mt-1">Sua semana, do café ao jantar</p></header>
     <img src={mealPhoto} alt="Refeição com vegetais frescos e alimentos variados" className="w-full h-32 object-cover rounded-xl" />
     {loading ? <div role="status" className="flex items-center justify-center gap-2 py-12"><Loader2 className="animate-spin w-5 h-5" /> Abrindo seu cardápio...</div> : loadFailed ? <div className="space-y-3"><p>Não foi possível abrir os dados da sua família.</p><Button onClick={() => setAttempt(a => a + 1)}>Tentar novamente</Button></div> : <Tabs value={tab} onValueChange={setTab}>
-      <TabsList className="w-full grid grid-cols-3"><TabsTrigger value="casa">Minha casa</TabsTrigger><TabsTrigger value="semana" disabled={!plan}>Semana</TabsTrigger><TabsTrigger value="compras" disabled={!plan}>Compras</TabsTrigger></TabsList>
+      <TabsList className="w-full grid grid-cols-3"><TabsTrigger value="casa">Minha casa</TabsTrigger><TabsTrigger value="semana" disabled={!plan}>Semana</TabsTrigger><TabsTrigger value="compras">Compras</TabsTrigger></TabsList>
       <TabsContent value="casa" className="space-y-6 pt-3">
         <fieldset disabled={!!busy} className="space-y-6 min-w-0">
           <section className="space-y-3"><h2 className="text-xl flex items-center gap-2"><ShoppingBasket className="w-5 h-5 text-primary" /> Alimentos disponíveis</h2>
@@ -145,11 +157,15 @@ export default function MealPlanner() {
         {plan.days[day]?.meals.map(m => <article key={m.slot} className="border bg-card rounded-lg p-4 space-y-3"><div className="flex items-center justify-between"><span className="text-xs font-semibold text-primary">{m.slot}</span><span className="text-xs text-muted-foreground flex items-center gap-1"><Clock className="w-3 h-3" />{m.minutes} min</span></div><h3 className="text-xl leading-snug break-words">{m.title}</h3><details><summary className="text-sm font-medium cursor-pointer">Ingredientes e preparo</summary><ul className="space-y-2 text-sm my-3">{m.ingredients.map((i, idx) => <li key={idx} className="flex justify-between gap-2"><span className="break-words">{i.quantity} · {i.name}</span><span className={`text-xs shrink-0 ${i.available ? "text-primary" : "text-muted-foreground"}`}>{i.available ? "Em casa" : "Comprar"}</span></li>)}</ul><ol className="list-decimal pl-5 space-y-2 text-sm text-muted-foreground">{m.steps.map((s, idx) => <li key={idx}>{s}</li>)}</ol></details></article>)}
         {plan.tips.length > 0 && <section className="border-t pt-4 space-y-2"><h2 className="text-xl">Para aproveitar melhor</h2>{plan.tips.map((tip, n) => <p key={n} className="text-sm text-muted-foreground">{tip}</p>)}</section>}
         <Button variant="outline" className="w-full" onClick={() => setTab("compras")}><ShoppingBasket />Ver lista de compras</Button>
-      </TabsContent><TabsContent value="compras" className="space-y-5 pt-3"><div className="flex items-start justify-between gap-2"><div><h2 className="text-xl">O que falta comprar</h2><p className="text-xs text-muted-foreground mt-1">{checked.length} de {plan.shopping.length} itens marcados</p></div><Button variant="outline" size="icon" title="Baixar lista" aria-label="Baixar lista" onClick={download}><Download /></Button></div>
+      </TabsContent></>}
+      <TabsContent value="compras" className="space-y-5 pt-3">
+        <SmartShoppingList scans={familyData.scans} historyLoading={familyData.loading} historyError={familyData.error} prefs={prefs} restrictions={[...memberInfo.restrictions, ...memberInfo.allergies]} plan={plan} state={shoppingState} onSave={saveShopping} />
+        {plan && <><div className="flex items-start justify-between gap-2"><div><h2 className="text-xl">O que falta para o cardápio</h2><p className="text-xs text-muted-foreground mt-1">{checked.length} de {plan.shopping.length} itens marcados</p></div><Button variant="outline" size="icon" title="Baixar lista" aria-label="Baixar lista" onClick={download}><Download /></Button></div>
         <div className="bg-secondary text-secondary-foreground p-3 rounded-lg"><p className="font-semibold">Estimativa: {money(plan.estimated_cost)}</p><p className="text-xs mt-1">Preços variam por região. Orçamento informado: {money(prefs.budget)}.</p>{plan.estimated_cost > prefs.budget && <p className="text-xs mt-2 font-semibold">A estimativa ultrapassa o orçamento; revise as compras.</p>}</div>
         {!plan.shopping.length && <p className="text-sm text-muted-foreground">Nenhum ingrediente adicional indicado. Confira as quantidades em casa.</p>}
         {categories.map(category => <section key={category}><h3 className="text-lg mb-2">{category}</h3><ul className="divide-y">{plan.shopping.map((i, n) => i.category !== category ? null : <li key={n}><label className="flex items-start gap-3 py-3 cursor-pointer"><Checkbox className="mt-1" disabled={checking} checked={checked.includes(String(n))} onCheckedChange={() => toggleItem(String(n))} /><span className={`text-sm break-words ${checked.includes(String(n)) ? "line-through text-muted-foreground" : ""}`}>{i.name}<span className="block text-xs text-muted-foreground mt-1">{i.quantity}</span></span></label></li>)}</ul></section>)}
-      </TabsContent></>}
+        </>}
+      </TabsContent>
     </Tabs>}
     <aside className="flex items-start gap-2 border-t pt-4 text-xs text-muted-foreground"><AlertTriangle className="w-4 h-4 shrink-0" /><p>Sugestões educativas, não prescrições nutricionais. A IA pode errar: confira ingredientes, quantidades, rótulos e contaminação cruzada, especialmente em caso de alergias. Para necessidades médicas ou infantis, consulte um profissional.</p></aside>
   </div>;

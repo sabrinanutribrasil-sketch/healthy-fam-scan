@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { planSchema, validateInput, validatePlan, type Preferences, type MealPlan } from "../_shared/meal-plan.ts";
+import { validateShoppingState } from "../_shared/shopping-state.ts";
 
 const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type", "Access-Control-Allow-Methods": "POST, OPTIONS" };
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...cors, "Content-Type": "application/json" } });
@@ -156,9 +157,10 @@ Deno.serve(async req => {
     if (authError || !auth.user) return json({ error: "Entre novamente na sua conta." }, 401);
     const { data: profile } = await db.from("profiles").select("family_id").eq("id", auth.user.id).single();
     if (!profile?.family_id) return json({ error: "Sua conta precisa estar vinculada a uma família." }, 403);
-    const { data: dbMembers } = await db.from("family_members")
+    const { data: dbMembers, error: membersError } = await db.from("family_members")
       .select("display_name, dietary_restrictions, allergies, nutrition_goals")
       .eq("family_id", profile.family_id);
+    if (membersError) throw new Error("Não foi possível consultar as restrições da família.");
     const members = Array.isArray(dbMembers) ? dbMembers as { display_name: string; dietary_restrictions: string[]; allergies: string[]; nutrition_goals: string | null }[] : [];
     const memberRestrictions = [...new Set(members.flatMap(m => (m.dietary_restrictions ?? []).map(r => r.toLowerCase())))];
     const memberAllergies = [...new Set(members.flatMap(m => (m.allergies ?? []).map(a => a.toLowerCase())))];
@@ -171,6 +173,14 @@ Deno.serve(async req => {
     const { data: existing, error: loadError } = await db.from("family_meal_planning").select("*").eq("family_id", profile.family_id).maybeSingle();
     if (loadError) throw new Error("Não foi possível abrir o cardápio.");
     if (body.action === "load") return json({ state: existing, members: { list: members, restrictions: memberRestrictions, allergies: memberAllergies, goals: memberGoals } });
+    if (body.action === "shopping") {
+      let state;
+      try { state = validateShoppingState(body.state); }
+      catch (e) { return json({ error: e instanceof Error ? e.message : "Lista inválida." }, 400); }
+      const { error } = await db.from("family_meal_planning").upsert({ family_id: profile.family_id, smart_shopping_state: state });
+      if (error) throw new Error("Não foi possível salvar a lista inteligente.");
+      return json({ ok: true });
+    }
     if (body.action === "check") {
       if (!Array.isArray(body.checked_items) || body.checked_items.length > 150 || body.checked_items.some((v: unknown) => typeof v !== "string" || v.length > 200)) return json({ error: "Lista inválida." }, 400);
       const { error } = await db.from("family_meal_planning").update({ checked_items: body.checked_items }).eq("family_id", profile.family_id);

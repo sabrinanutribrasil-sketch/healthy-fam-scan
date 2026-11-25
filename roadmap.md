@@ -1,3 +1,8 @@
+# Smart shopping list
+- [x] Predict replenishment from receipt purchase intervals, without claiming exact stock (unit-tested; current family has insufficient repeated receipts).
+- [x] Suggest healthier substitutions respecting household restrictions and compare only observed compatible-unit prices (15 tests passed).
+- [x] Save a shared editable shopping checklist and verify authenticated add, substitute, edit quantity, check, reload, download and remove on desktop/mobile.
+
 # Weekly meal planner
 - [x] Store household pantry, preferences and latest weekly plan securely by family.
 - [x] Generate validated seven-day recipes and missing-ingredient shopping list through authenticated AI.

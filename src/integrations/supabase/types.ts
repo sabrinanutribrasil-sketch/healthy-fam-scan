@@ -78,6 +78,7 @@ export type Database = {
           pantry: Json
           plan: Json | null
           preferences: Json
+          smart_shopping_state: Json
           updated_at: string
         }
         Insert: {
@@ -87,6 +88,7 @@ export type Database = {
           pantry?: Json
           plan?: Json | null
           preferences?: Json
+          smart_shopping_state?: Json
           updated_at?: string
         }
         Update: {
@@ -96,6 +98,7 @@ export type Database = {
           pantry?: Json
           plan?: Json | null
           preferences?: Json
+          smart_shopping_state?: Json
           updated_at?: string
         }
         Relationships: [

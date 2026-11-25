@@ -1,0 +1,2 @@
+ALTER TABLE public.family_meal_planning ADD COLUMN smart_shopping_state jsonb NOT NULL DEFAULT '{"items":[]}'::jsonb;
+ALTER TABLE public.family_meal_planning ADD CONSTRAINT smart_shopping_state_size CHECK (jsonb_typeof(smart_shopping_state) = 'object' AND octet_length(smart_shopping_state::text) <= 60000);
