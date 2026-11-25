@@ -1,4 +1,5 @@
 # Smart shopping list
+- [x] Add saved per-food replenishment intervals, exclusion and restoration controls; 25 tests passed and authenticated mobile flow verified across reloads.
 - [x] Predict replenishment from receipt purchase intervals, without claiming exact stock (unit-tested; current family has insufficient repeated receipts).
 - [x] Suggest healthier substitutions respecting household restrictions and compare only observed compatible-unit prices (15 tests passed).
 - [x] Save a shared editable shopping checklist and verify authenticated add, substitute, edit quantity, check, reload, download and remove on desktop/mobile.

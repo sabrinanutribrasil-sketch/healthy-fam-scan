@@ -1,6 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { planSchema, validateInput, validatePlan, type Preferences, type MealPlan } from "../_shared/meal-plan.ts";
-import { validateShoppingState } from "../_shared/shopping-state.ts";
+import { mergeShoppingState } from "../_shared/shopping-state.ts";
 
 const cors = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type", "Access-Control-Allow-Methods": "POST, OPTIONS" };
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...cors, "Content-Type": "application/json" } });
@@ -175,7 +175,7 @@ Deno.serve(async req => {
     if (body.action === "load") return json({ state: existing, members: { list: members, restrictions: memberRestrictions, allergies: memberAllergies, goals: memberGoals } });
     if (body.action === "shopping") {
       let state;
-      try { state = validateShoppingState(body.state); }
+      try { state = mergeShoppingState(existing?.smart_shopping_state, body.state); }
       catch (e) { return json({ error: e instanceof Error ? e.message : "Lista inválida." }, 400); }
       const { error } = await db.from("family_meal_planning").upsert({ family_id: profile.family_id, smart_shopping_state: state });
       if (error) throw new Error("Não foi possível salvar a lista inteligente.");

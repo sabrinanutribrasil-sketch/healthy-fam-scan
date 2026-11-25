@@ -2,7 +2,8 @@ import { foodDatabase, type Food } from "./food-database";
 import type { ScanRecord } from "@/hooks/use-family-data";
 import type { Preferences } from "./meal-planner";
 export { validateShoppingState } from "../../supabase/functions/_shared/shopping-state";
-export type { ShoppingItem, ShoppingState } from "../../supabase/functions/_shared/shopping-state";
+export type { ShoppingItem, ShoppingState, ReplenishmentSetting } from "../../supabase/functions/_shared/shopping-state";
+import type { ReplenishmentSetting } from "../../supabase/functions/_shared/shopping-state";
 
 export const normalizeFood = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 export function matchFood(name: string): Food | undefined {
@@ -54,19 +55,23 @@ export function purchaseHistory(scans: ScanRecord[]): PurchaseHistory[] {
   }
   return [...history.values()].map(h => ({ ...h, purchases: h.purchases.sort((a, b) => a.date - b.date) }));
 }
-export type Replenishment = { key: string; name: string; quantity: string; interval: number; daysUntil: number; date: number; confidence: "initial" | "pattern"; count: number };
-export function predictReplenishment(history: PurchaseHistory[], now = Date.now()): Replenishment[] {
+export type Replenishment = { key: string; name: string; quantity: string; interval: number; daysUntil: number; date: number; confidence: "initial" | "pattern" | "custom"; count: number };
+export function predictReplenishment(history: PurchaseHistory[], now = Date.now(), settings: ReplenishmentSetting[] = []): Replenishment[] {
   const today = Math.floor(now / DAY) * DAY;
   return history.flatMap(h => {
+    const setting = settings.find(s => s.key === h.key);
+    if (setting?.excluded) return [];
+    const custom = setting?.intervalDays;
+    const customInterval = typeof custom === "number" && Number.isInteger(custom) && custom >= 1 && custom <= 365 ? custom : undefined;
     const past = h.purchases.filter(p => p.date <= today);
     const last = lastOf(past);
-    if (past.length < 2 || !last || today - last.date > 90 * DAY) return [];
+    if (!last || (!customInterval && (past.length < 2 || today - last.date > 90 * DAY))) return [];
     const recent = past.slice(-6);
     const intervals = recent.slice(1).map((p, i) => (p.date - recent[i].date) / DAY).filter(n => n > 0);
-    if (!intervals.length) return [];
-    const interval = Math.max(1, Math.round(intervals.reduce((a, b) => a + b, 0) / intervals.length));
+    if (!customInterval && !intervals.length) return [];
+    const interval = customInterval ?? Math.max(1, Math.round(intervals.reduce((a, b) => a + b, 0) / intervals.length));
     const date = last.date + interval * DAY;
-    return [{ key: h.key, name: h.name, quantity: last.quantity, interval, date, daysUntil: Math.round((date - today) / DAY), confidence: past.length >= 3 ? "pattern" as const : "initial" as const, count: past.length }];
+    return [{ key: h.key, name: h.name, quantity: last.quantity, interval, date, daysUntil: Math.round((date - today) / DAY), confidence: customInterval ? "custom" as const : past.length >= 3 ? "pattern" as const : "initial" as const, count: past.length }];
   }).sort((a, b) => a.daysUntil - b.daysUntil);
 }
 

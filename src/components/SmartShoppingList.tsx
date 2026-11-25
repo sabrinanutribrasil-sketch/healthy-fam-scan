@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { foodKey, predictReplenishment, purchaseHistory, suggestShoppingSwaps, type ShoppingState, type ShoppingItem } from "@/lib/smart-shopping";
 import type { ScanRecord } from "@/hooks/use-family-data";
 import type { MealPlan, Preferences } from "@/lib/meal-planner";
+import { ReplenishmentControls } from "@/components/ReplenishmentControls";
 
 type Props = { scans: ScanRecord[]; historyLoading: boolean; historyError: string | null; prefs: Preferences; restrictions: string[]; plan: MealPlan | null; state: ShoppingState; onSave: (state: ShoppingState) => Promise<void> };
 const money = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -15,15 +16,27 @@ export function SmartShoppingList({ scans, historyLoading, historyError, prefs, 
   const [quantity, setQuantity] = useState("");
   const [error, setError] = useState<string | null>(null);
   const history = useMemo(() => purchaseHistory(scans), [scans]);
-  const predictions = useMemo(() => predictReplenishment(history), [history]);
+  const predictions = useMemo(() => predictReplenishment(history, Date.now(), state.replenishment), [history, state.replenishment]);
+  const automatic = useMemo(() => predictReplenishment(history), [history]);
+  const controls = useMemo(() => {
+    const foods = new Map(history.map(h => [h.key, { key: h.key, name: h.name, hasPurchase: true, automaticInterval: automatic.find(p => p.key === h.key)?.interval }]));
+    for (const item of [...state.items, ...(state.replenishment ?? [])]) {
+      const key = "key" in item ? item.key : foodKey(item.name);
+      if (!foods.has(key)) foods.set(key, { key, name: item.name, hasPurchase: false, automaticInterval: undefined });
+    }
+    return [...foods.values()].sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+  }, [history, automatic, state.items, state.replenishment]);
   const soon = predictions.filter(p => p.daysUntil <= 7);
   const complete = state.items.filter(i => i.checked).length;
-  const save = async (items: ShoppingItem[]) => {
-    if (items.length > 150) { setError("A lista pode ter até 150 itens."); return false; }
+  const saveState = async (next: ShoppingState) => {
     setSaving(true); setError(null);
-    try { await onSave({ items }); return true; }
+    try { await onSave(next); return true; }
     catch (e) { setError(e instanceof Error ? e.message : "Não foi possível salvar sua lista."); return false; }
     finally { setSaving(false); }
+  };
+  const save = async (items: ShoppingItem[]) => {
+    if (items.length > 150) { setError("A lista pode ter até 150 itens."); return false; }
+    return saveState({ ...state, items });
   };
   const add = async (food: string, amount = "") => {
     if (!food.trim()) return;
@@ -40,14 +53,15 @@ export function SmartShoppingList({ scans, historyLoading, historyError, prefs, 
     <section className="space-y-3">
       <h3 className="text-lg flex items-center gap-2"><CalendarClock className="w-5 h-5 text-primary shrink-0" /> Reposição prevista</h3>
       <p className="text-xs text-muted-foreground">Estimativa pelo intervalo entre suas compras. Não mede o estoque nem a validade dos alimentos.</p>
-      {historyLoading ? <p role="status" className="text-sm text-muted-foreground">Consultando suas compras...</p> : historyError ? <p role="alert" className="text-sm text-destructive">Não foi possível consultar o histórico. Você ainda pode montar sua lista.</p> : !predictions.length ? <p className="text-sm text-muted-foreground">Escaneie notas de pelo menos duas datas com o mesmo alimento para começar a prever a reposição.</p> : <>
+      {historyLoading ? <p role="status" className="text-sm text-muted-foreground">Consultando suas compras...</p> : historyError ? <p role="alert" className="text-sm text-destructive">Não foi possível consultar o histórico. Você ainda pode montar sua lista.</p> : !predictions.length ? <p className="text-sm text-muted-foreground">{state.replenishment?.some(s => s.excluded) ? "Nenhuma previsão ativa. Confira os alimentos excluídos nos ajustes abaixo." : "Escaneie notas de pelo menos duas datas com o mesmo alimento, ou defina um intervalo após a primeira compra."}</p> : <>
         {!soon.length && <p className="text-sm text-muted-foreground">Nenhuma reposição prevista para os próximos 7 dias.</p>}
         <ul className="divide-y">{soon.map(p => {
           const added = state.items.some(i => foodKey(i.name) === p.key);
-          return <li key={p.key} className="flex items-center gap-3 py-3"><div className="min-w-0 flex-1"><p className="text-sm font-semibold break-words">{p.name}</p><p className="text-xs text-primary mt-1">{p.daysUntil < 0 ? "Confira o estoque: reposição prevista já passou" : p.daysUntil === 0 ? "Previsto para hoje" : `Previsto em ${p.daysUntil} dia(s)`}</p><p className="text-xs text-muted-foreground mt-1">A cada ~{p.interval} dias · {p.count} compras{p.confidence === "initial" ? " · previsão inicial" : ""}</p></div><Button size="icon" variant="outline" disabled={saving || added} onClick={() => add(p.name, p.quantity === "Confira a quantidade" ? "" : p.quantity)} aria-label={`Adicionar reposição de ${p.name}`} title={added ? "Já está na lista" : "Adicionar reposição"}>{added ? <Check /> : <Plus />}</Button></li>;
+          return <li key={p.key} className="flex items-center gap-3 py-3"><div className="min-w-0 flex-1"><p className="text-sm font-semibold break-words">{p.name}</p><p className="text-xs text-primary mt-1">{p.daysUntil < 0 ? "Confira o estoque: reposição prevista já passou" : p.daysUntil === 0 ? "Previsto para hoje" : `Previsto em ${p.daysUntil} dia(s)`}</p><p className="text-xs text-muted-foreground mt-1">A cada ~{p.interval} dias · {p.count} compras{p.confidence === "initial" ? " · previsão inicial" : p.confidence === "custom" ? " · intervalo da família" : ""}</p></div><Button size="icon" variant="outline" disabled={saving || added} onClick={() => add(p.name, p.quantity === "Confira a quantidade" ? "" : p.quantity)} aria-label={`Adicionar reposição de ${p.name}`} title={added ? "Já está na lista" : "Adicionar reposição"}>{added ? <Check /> : <Plus />}</Button></li>;
         })}</ul>
         {predictions.some(p => p.daysUntil > 7) && <details><summary className="text-sm cursor-pointer text-primary">Próximas reposições</summary><ul className="divide-y mt-2">{predictions.filter(p => p.daysUntil > 7).map(p => <li key={p.key} className="text-sm py-2 flex justify-between gap-3"><span className="break-words">{p.name}</span><span className="text-xs text-muted-foreground shrink-0">~{p.daysUntil} dias</span></li>)}</ul></details>}
       </>}
+      <ReplenishmentControls foods={controls} settings={state.replenishment ?? []} saving={saving} onSave={replenishment => saveState({ ...state, replenishment })} />
     </section>
     <section className="space-y-3">
       <div className="flex items-center gap-2"><ShoppingBasket className="w-5 h-5 text-primary" /><h3 className="text-lg">Minha próxima compra</h3></div>

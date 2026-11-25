@@ -1,7 +1,7 @@
 # Architecture rules
 
 - Compute replenishment from distinct receipt dates and substitutions from the food catalog; compare only recent observed per-kg/per-liter prices, never guessed package costs, to avoid false savings and stock guarantees.
-- Persist the intelligent shopping checklist in family_meal_planning through authenticated meal-planner actions with shared payload validation; existing family RLS remains the access boundary.
+- Persist the intelligent shopping checklist and per-food interval/exclusion settings in family_meal_planning through authenticated meal-planner actions with shared payload validation; preserve forecast settings on older-client item-only writes so Android updates cannot erase them, and retain existing family RLS.
 
 - Use the managed Stripe gateway through `supabase/functions/_shared/stripe.ts`; never instantiate Stripe directly because managed credentials are gateway identifiers.
 - Treat `subscriptions` as the source of truth for Premium access, always filtered by payment environment, because test and live records share the same database.
