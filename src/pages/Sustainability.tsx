@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
-import { ArrowLeft, Leaf, Recycle, Sprout, TrendingDown, Award, ScanLine, Droplets, TreePine, Factory } from "lucide-react";
+import { ArrowLeft, ArrowRight, Heart, Leaf, Recycle, Sprout, TrendingDown, Award, ScanLine, Droplets, TreePine, Factory } from "lucide-react";
 import { motion } from "framer-motion";
 import { useFamilyData, type ScanRecord } from "@/hooks/use-family-data";
 import { Skeleton } from "@/components/ui/skeleton";
 import { foodDatabase } from "@/lib/food-database";
+import { Button } from "@/components/ui/button";
 
 type ScanResult = {
   items?: { name?: string; category?: string; nova_class?: number; health_flag?: string }[];
@@ -239,6 +240,38 @@ const Sustainability = () => {
         </div>
       </header>
 
+      <section aria-labelledby="protein-context" className="space-y-4 border-y border-border py-5">
+        <div className="flex items-center gap-2">
+          <Heart className="h-5 w-5 shrink-0 text-accent" aria-hidden="true" />
+          <h2 id="protein-context" className="font-display text-xl">Proteína faz parte de uma alimentação saudável</h2>
+        </div>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          Proteínas são essenciais para o crescimento, a manutenção dos músculos e a reparação dos tecidos.
+          Carnes, peixes, ovos, leite, feijão e lentilha podem fazer parte da alimentação da família.
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="border-l-2 border-accent pl-3">
+            <p className="text-sm font-semibold">Saúde no prato</p>
+            <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
+              A qualidade nutricional depende do conjunto da alimentação, do preparo e das necessidades de cada pessoa — não só da origem da proteína.
+            </p>
+          </div>
+          <div className="border-l-2 border-success pl-3">
+            <p className="text-sm font-semibold">Impacto no planeta</p>
+            <p className="mt-1 text-sm text-muted-foreground leading-relaxed">
+              A produção dos alimentos gera emissões diferentes. Um impacto ambiental maior não significa que o alimento faz mal à saúde.
+            </p>
+          </div>
+        </div>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          Não é preciso cortar proteínas para cuidar do planeta: varie as fontes, planeje as porções e aproveite os alimentos sem desperdício.
+          Para ajustar quantidades, procure orientação de um nutricionista.
+        </p>
+        <Button asChild variant="outline" className="max-w-full whitespace-normal h-auto min-h-10 py-2">
+          <Link to="/app/perfil-nutricional">Ver perfil nutricional <ArrowRight className="h-4 w-4 shrink-0" /></Link>
+        </Button>
+      </section>
+
       {hasData ? (
         <>
           {/* Eco Score Hero */}
@@ -262,6 +295,9 @@ const Sustainability = () => {
               </div>
               <p className="text-sm opacity-90 mt-3">
                 Baseado em {receiptScans.length} {receiptScans.length === 1 ? "escaneamento" : "escaneamentos"} · {totalItems} itens analisados
+              </p>
+              <p className="mt-2 text-sm opacity-90">
+                Indicador ambiental, não uma nota de saúde. Ele não mede se a família consome proteína suficiente.
               </p>
               <div className="grid grid-cols-3 gap-2 mt-5">
                 <div className="rounded-xl bg-white/15 backdrop-blur p-2.5">
@@ -367,22 +403,19 @@ const Sustainability = () => {
           {categoryImpact.length > 0 && (
             <section className="bg-card rounded-3xl p-5 shadow-soft">
               <h2 className="font-display text-xl mb-1">Impacto por categoria</h2>
-              <p className="text-xs text-muted-foreground mb-4">Pegada de carbono estimada por grupo alimentar</p>
+              <p className="text-xs text-muted-foreground mb-2">Pegada de carbono estimada por grupo alimentar — não é uma classificação de alimentos saudáveis ou prejudiciais.</p>
+              <p className="text-xs text-muted-foreground mb-4">Os valores somam referências por kg de cada item identificado, sem ajustar ao peso comprado; não representam as emissões reais da família. Origem, produção e transporte também influenciam o impacto.</p>
               <ul className="space-y-2.5">
                 {categoryImpact.map((c) => {
                   const widthPct = Math.min((c.co2 / MAX_CATEGORY_CO2) * 100, 100);
-                  const intensity = c.co2 > 20 ? "text-destructive" : c.co2 > 10 ? "text-warning" : "text-success";
                   return (
                     <li key={c.category} className="flex items-center gap-3">
-                      <span className="text-sm flex-1">{c.label}</span>
-                      <span className={`text-sm font-bold w-16 text-right ${intensity}`}>{c.co2} kg</span>
-                      <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
+                      <span className="text-sm flex-1 min-w-0 break-words">{c.label}</span>
+                      <span className="text-sm font-bold w-16 shrink-0 text-right text-foreground">{c.co2} kg</span>
+                      <div className="w-16 sm:w-24 shrink-0 h-2 bg-muted rounded-full overflow-hidden">
                         <div
-                          className="h-full rounded-full"
-                          style={{
-                            width: `${widthPct}%`,
-                            background: c.co2 > 20 ? "hsl(var(--destructive))" : c.co2 > 10 ? "hsl(var(--warning))" : "hsl(var(--success))",
-                          }}
+                          className="h-full rounded-full bg-primary"
+                          style={{ width: `${widthPct}%` }}
                         />
                       </div>
                     </li>
@@ -510,7 +543,7 @@ const Sustainability = () => {
               </li>
               <li className="flex gap-3">
                 <Droplets className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-                <span>Leguminosas (feijão, lentilha) têm pegada de carbono até 10x menor que carnes.</span>
+                <span>Feijão e lentilha fornecem proteínas e costumam ter menor impacto ambiental que a carne bovina. Varie as fontes conforme as necessidades, preferências e possibilidades da família, sem excluir grupos alimentares por causa do Eco Score.</span>
               </li>
             </ul>
           </section>

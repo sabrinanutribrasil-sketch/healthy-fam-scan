@@ -1,3 +1,6 @@
+# Sustainability and proteins
+- [x] Clarify essential protein nutrition separately from environmental indicators without changing scores, with neutral category visuals and estimate limitations; authenticated mobile/desktop views and nutrition-profile link verified, with no overflow or runtime errors.
+
 # Visual sharing
 - [x] Add private-by-default nutrition PNG cards in Story/square formats; four tests passed and authenticated mobile/desktop PNG downloads verified. Native Android sharing requires the next .aab and device verification.
 
