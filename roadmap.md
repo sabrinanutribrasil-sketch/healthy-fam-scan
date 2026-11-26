@@ -1,3 +1,6 @@
+# Visual sharing
+- [x] Add private-by-default nutrition PNG cards in Story/square formats; four tests passed and authenticated mobile/desktop PNG downloads verified. Native Android sharing requires the next .aab and device verification.
+
 # Smart shopping list
 - [x] Add saved per-food replenishment intervals, exclusion and restoration controls; 25 tests passed and authenticated mobile flow verified across reloads.
 - [x] Predict replenishment from receipt purchase intervals, without claiming exact stock (unit-tested; current family has insufficient repeated receipts).

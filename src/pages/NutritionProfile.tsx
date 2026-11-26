@@ -19,6 +19,7 @@ import {
 import { motion } from "framer-motion";
 import { useFamilyData, type ScanRecord } from "@/hooks/use-family-data";
 import { Skeleton } from "@/components/ui/skeleton";
+import { NutritionShare } from "@/components/NutritionShare";
 
 const MONTHS = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
@@ -179,7 +180,7 @@ function deriveCategoryData(scans: ScanRecord[]) {
 }
 
 const NutritionProfile = () => {
-  const { scans, members, latestScore, avgScore, totalScans, loading } = useFamilyData();
+  const { family, scans, members, latestScore, avgScore, totalScans, loading } = useFamilyData();
 
   if (loading) {
     return (
@@ -277,6 +278,8 @@ const NutritionProfile = () => {
               </div>
             </div>
           </motion.section>
+
+          <NutritionShare scans={scans} familyName={family?.name ?? ""} />
 
           {highlights.length > 0 && (
             <div className="grid grid-cols-3 gap-3">
